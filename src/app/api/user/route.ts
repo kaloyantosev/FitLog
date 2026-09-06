@@ -33,8 +33,36 @@ export async function PUT(request: Request) {
   try {
     const data = await request.json();
     let user = await prisma.user.findFirst();
+    
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      const newUser = await prisma.user.create({
+        data: {
+          name: data.name || 'Атлет',
+          email: data.email || 'athlete@fitlog.bg',
+          password: data.password || 'password123',
+          role: data.role || 'CLIENT',
+          age: data.age !== undefined ? parseInt(data.age) : 25,
+          gender: data.gender || 'MALE',
+          heightCm: data.heightCm !== undefined ? parseFloat(data.heightCm) : 180.0,
+          currentWeight: data.currentWeight !== undefined ? parseFloat(data.currentWeight) : 80.0,
+          targetWeight: data.targetWeight !== undefined ? parseFloat(data.targetWeight) : 75.0,
+          trainingDaysPerWeek: data.trainingDaysPerWeek !== undefined ? parseInt(data.trainingDaysPerWeek) : 4,
+          preferredTrainingHour: data.preferredTrainingHour || '18:00',
+          emailNotificationsEnabled: data.emailNotificationsEnabled !== undefined ? Boolean(data.emailNotificationsEnabled) : true,
+          foodPreferences: data.foodPreferences || 'BALANCED',
+          avoidedIngredients: data.avoidedIngredients !== undefined ? (typeof data.avoidedIngredients === 'string' ? data.avoidedIngredients : JSON.stringify(data.avoidedIngredients)) : '[]',
+          mealsPerDay: data.mealsPerDay !== undefined ? parseInt(data.mealsPerDay) : 4,
+          mealTiming: data.mealTiming || 'STANDARD',
+          snackingHabits: data.snackingHabits || 'AFTERNOON_FUEL',
+          mealPlanData: data.mealPlanData !== undefined ? (typeof data.mealPlanData === 'string' ? data.mealPlanData : JSON.stringify(data.mealPlanData)) : null,
+          dailyCaloriesTarget: data.dailyCaloriesTarget !== undefined ? parseInt(data.dailyCaloriesTarget) : 2400,
+          proteinTarget: data.proteinTarget !== undefined ? parseInt(data.proteinTarget) : 180,
+          carbsTarget: data.carbsTarget !== undefined ? parseInt(data.carbsTarget) : 240,
+          fatsTarget: data.fatsTarget !== undefined ? parseInt(data.fatsTarget) : 65,
+          waterTargetMl: data.waterTargetMl !== undefined ? parseInt(data.waterTargetMl) : 3500,
+        },
+      });
+      return NextResponse.json(newUser);
     }
 
     const updated = await prisma.user.update({
@@ -42,6 +70,7 @@ export async function PUT(request: Request) {
       data: {
         name: data.name ?? user.name,
         email: data.email ?? user.email,
+        password: data.password ?? user.password,
         role: data.role ?? user.role,
         age: data.age !== undefined ? parseInt(data.age) : user.age,
         gender: data.gender ?? user.gender,
@@ -67,7 +96,11 @@ export async function PUT(request: Request) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Error updating user:', error);
+    console.error('Error updating/creating user:', error);
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }
+}
+
+export async function POST(request: Request) {
+  return PUT(request);
 }

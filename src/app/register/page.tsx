@@ -353,7 +353,7 @@ export default function RegisterPage() {
 
       // 3. Clear existing templates and seed the newly synthesized templates
       try {
-        await fetch('/api/templates/reset', { method: 'POST' });
+        await fetch('/api/templates', { method: 'DELETE' });
         for (const tmpl of result.templates) {
           await fetch('/api/templates', {
             method: 'POST',

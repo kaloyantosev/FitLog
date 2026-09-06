@@ -64,3 +64,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to create template' }, { status: 500 });
   }
 }
+
+export async function DELETE() {
+  try {
+    await prisma.templateExercise.deleteMany();
+    await prisma.workoutTemplate.deleteMany();
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting templates:', error);
+    return NextResponse.json({ error: 'Failed to delete templates' }, { status: 500 });
+  }
+}
