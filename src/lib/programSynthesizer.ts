@@ -17,9 +17,11 @@ export interface QuestionnaireInput {
   experienceScale: number;      // 1-6
   stressScale: number;          // 1-6
   sleepScale: number;           // 1-6
-  dietDisciplineScale: number;  // 1-6
-  priorityMuscleGroup?: string; // 'BALANCED', 'CHEST', 'BACK', 'SHOULDERS', 'ARMS', 'LEGS', 'CORE'
-  avoidedMuscleArea?: string;   // 'NONE', 'HEAVY_SQUATS', 'HEAVY_DEADLIFTS', 'DIRECT_SHOULDERS', 'DIRECT_ARMS'
+  dietDisciplineScale?: number; // 1-6
+  priorityMuscleGroups?: string[]; // Array of specific muscle group IDs
+  priorityMuscleGroup?: string;   // Backward compatibility
+  avoidedMuscleAreas?: string[];   // Array of avoided area IDs
+  avoidedMuscleArea?: string;     // Backward compatibility
   foodPreferences?: string;     // 'BALANCED', 'MEDITERRANEAN', 'HIGH_PROTEIN_LOW_CARB', 'PESCATARIAN', 'VEGETARIAN', 'BODYBUILDING_PREP'
   avoidedIngredients?: string[]; // IDs like 'pork', 'peanuts', etc.
   mealsPerDay?: number;         // 2 to 6
@@ -180,9 +182,20 @@ export function synthesizeProgram(input: QuestionnaireInput): GeneratedProgramRe
     primaryGoalScale,
     activityLevelScale,
     experienceScale,
-    priorityMuscleGroup = 'BALANCED',
-    avoidedMuscleArea = 'NONE',
+    priorityMuscleGroups = ['BALANCED'],
+    priorityMuscleGroup,
+    avoidedMuscleAreas = [],
+    avoidedMuscleArea,
   } = input;
+
+  // Resolve arrays vs legacy single string
+  const resolvedPriorityGroups = input.priorityMuscleGroups && input.priorityMuscleGroups.length > 0 
+    ? input.priorityMuscleGroups 
+    : [priorityMuscleGroup || 'BALANCED'];
+  
+  const resolvedAvoidedAreas = input.avoidedMuscleAreas && input.avoidedMuscleAreas.length > 0 
+    ? input.avoidedMuscleAreas 
+    : avoidedMuscleArea && avoidedMuscleArea !== 'NONE' ? [avoidedMuscleArea] : [];
 
   // 1. Calculate BMR (Mifflin-St Jeor)
   let bmr = 10 * currentWeight + 6.25 * heightCm - 5 * age;
@@ -228,8 +241,10 @@ export function synthesizeProgram(input: QuestionnaireInput): GeneratedProgramRe
   const expRpe = experienceScale <= 2 ? 7.5 : 8.5;
 
   // Adapt exercises if user avoids certain movements
-  const squatSubstitute = avoidedMuscleArea === 'HEAVY_SQUATS' ? 'ex-6' : 'ex-4';
-  const deadliftSubstitute = avoidedMuscleArea === 'HEAVY_DEADLIFTS' ? 'ex-6' : 'ex-5';
+  const avoidsSquats = resolvedAvoidedAreas.includes('KNEES') || resolvedAvoidedAreas.includes('HEAVY_SQUATS');
+  const avoidsDeadlifts = resolvedAvoidedAreas.includes('LOWER_BACK') || resolvedAvoidedAreas.includes('HEAVY_DEADLIFTS');
+  const squatSubstitute = avoidsSquats ? 'ex-6' : 'ex-4';
+  const deadliftSubstitute = avoidsDeadlifts ? 'ex-6' : 'ex-5';
 
   if (days === 1) {
     recommendedSplitName = 'Цяло тяло – Високоефективен протокол (1 ден)';
@@ -474,25 +489,52 @@ export function synthesizeProgram(input: QuestionnaireInput): GeneratedProgramRe
 
   const priorityLabels: Record<string, string> = {
     BALANCED: 'Равномерно цялостно развитие',
-    CHEST: 'Гърди & Предно рамо (Приоритетен обем)',
-    BACK: 'Широк гръб & V-профил (Приоритетен обем)',
-    SHOULDERS: 'Рамене – 3D Делтоиди (Приоритетен обем)',
-    ARMS: 'Ръце – Бицепс и Трицепс (Приоритетен обем)',
-    LEGS: 'Крака & Седалище / Глутеус (Приоритетен обем)',
-    CORE: 'Коремна стена & Ядро (Приоритетен обем)',
+    CHEST_UPPER: 'Горна част на гърдите',
+    CHEST_MID_LOWER: 'Средна и долна част на гърдите',
+    BACK_LATS: 'Ширина на гърба (Латс)',
+    BACK_THICKNESS: 'Плътност на гърба & Трапец',
+    BACK_LOWER: 'Долен гръб & Кръст',
+    SHOULDERS_SIDE: 'Странично рамо (3D Ширина)',
+    SHOULDERS_FRONT: 'Предно рамо',
+    SHOULDERS_REAR: 'Задно рамо & Ротатори',
+    ARMS_BICEPS: 'Бицепси',
+    ARMS_TRICEPS: 'Трицепси',
+    ARMS_FOREARMS: 'Предмишници & Захват',
+    LEGS_QUADS: 'Квадрицепси (Предно бедро)',
+    LEGS_HAMSTRINGS: 'Задно бедро',
+    LEGS_GLUTES: 'Глутеус / Седалище',
+    LEGS_CALVES: 'Прасци',
+    CORE_ABS: 'Коремна преса & Ядро',
+    CHEST: 'Гърди & Предно рамо',
+    BACK: 'Широк гръб & V-профил',
+    SHOULDERS: 'Рамене – 3D Делтоиди',
+    ARMS: 'Ръце – Бицепс и Трицепс',
+    LEGS: 'Крака & Седалище',
+    CORE: 'Коремна стена & Ядро',
   };
 
   const avoidedLabels: Record<string, string> = {
     NONE: 'Няма ограничения',
-    HEAVY_SQUATS: 'Изключени тежки клекове с лост (заместени с щадящи унилатерални движения)',
-    HEAVY_DEADLIFTS: 'Изключена тежка тяга (щадене на кръста и лумбалната зона)',
+    LOWER_BACK: 'Кръст / Лумбален отдел (Щадене от тежка мъртва тяга)',
+    KNEES: 'Коленни стави (Щадене от тежки дълбоки клекове с щанга)',
+    SHOULDERS: 'Раменни стави (Щадене от преси над глава)',
+    ELBOWS_WRISTS: 'Лакти и китки (Щадене от френски разгъвания)',
+    DIRECT_CHEST: 'Гърди (Ограничени бутащи упражнения)',
+    DIRECT_LEGS: 'Крака (Без тежки натоварвания)',
+    DIRECT_ARMS: 'Ръце (Без директна изолация)',
+    HEAVY_SQUATS: 'Изключени тежки клекове с лост',
+    HEAVY_DEADLIFTS: 'Изключена тежка тяга',
     DIRECT_SHOULDERS: 'Намален раменен натиск',
-    DIRECT_ARMS: 'Ограничена директна изолация за ръце',
   };
+
+  const prioritySummaryStr = resolvedPriorityGroups.map((id) => priorityLabels[id] || id).join(', ');
+  const avoidedSummaryStr = resolvedAvoidedAreas.length > 0 
+    ? resolvedAvoidedAreas.map((id) => avoidedLabels[id] || id).join(', ')
+    : 'Няма ограничения';
 
   const aiSynthesisSummary = `🧠 **AI Анализ и Персонализиран План за ${input.name}**:
 - **Физиологична цел**: ${goalTitle} (Текущо тегло: **${currentWeight} кг** ➔ Целево тегло: **${targetWeight} кг**).
-- **Специализация на мускулни групи**: Приоритетна зона: **${priorityLabels[priorityMuscleGroup] || priorityMuscleGroup}**. Ограничения/Щадене: **${avoidedLabels[avoidedMuscleArea] || avoidedMuscleArea}**.
+- **Специализация на мускулни групи**: Приоритетни зони: **${prioritySummaryStr}**. Ограничения/Щадене: **${avoidedSummaryStr}**.
 - **Метаболитен баланс**: Вашият прогнозен TDEE е **${Math.round(tdee)} ккал/ден**. Предписаният калориен прием е **${dailyCaloriesTarget} ккал/ден** с **${proteinTarget} г Протеин** за максимален мускулен протеинов синтез.
 - **Хранителен протокол**: Изготвихме **7-дневен детайлен хранителен режим**, адаптиран към вашите предпочитания (${input.foodPreferences || 'Балансирани цели храни'}) и изключени съставки (${input.avoidedIngredients?.length ? input.avoidedIngredients.join(', ') : 'Няма'}).
 - **Тренировъчна честота и обем**: Синтезирахме **${recommendedSplitName}** (${days} дни седмично). Към всяка сесия е добавен специализиран **загряващ протокол за мобилност с видеа**.
