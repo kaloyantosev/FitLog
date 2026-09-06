@@ -36,11 +36,11 @@ export default function CoachPage() {
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [clientForm, setClientForm] = useState({
     name: '',
-    targetWeight: 75.0,
-    dailyCaloriesTarget: 2500,
-    proteinTarget: 185,
-    carbsTarget: 260,
-    fatsTarget: 65,
+    targetWeight: '75.0',
+    dailyCaloriesTarget: '2500',
+    proteinTarget: '185',
+    carbsTarget: '260',
+    fatsTarget: '65',
   });
 
   useEffect(() => {
@@ -58,12 +58,12 @@ export default function CoachPage() {
       if (uRes && !uRes.error) {
         setUser(uRes);
         setClientForm({
-          name: uRes.name,
-          targetWeight: uRes.targetWeight,
-          dailyCaloriesTarget: uRes.dailyCaloriesTarget,
-          proteinTarget: uRes.proteinTarget,
-          carbsTarget: uRes.carbsTarget,
-          fatsTarget: uRes.fatsTarget,
+          name: uRes.name || '',
+          targetWeight: String(uRes.targetWeight ?? 75.0),
+          dailyCaloriesTarget: String(uRes.dailyCaloriesTarget ?? 2500),
+          proteinTarget: String(uRes.proteinTarget ?? 185),
+          carbsTarget: String(uRes.carbsTarget ?? 260),
+          fatsTarget: String(uRes.fatsTarget ?? 65),
         });
       }
 
@@ -81,17 +81,24 @@ export default function CoachPage() {
     if (!exerciseForm.name.trim()) return;
 
     try {
-      await fetch('/api/exercises', {
+      const res = await fetch('/api/exercises', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(exerciseForm),
       });
-
-      setExerciseForm({ name: '', category: 'CHEST', equipment: 'BARBELL', instructions: '' });
-      setIsExerciseModalOpen(false);
-      fetchData();
-    } catch (e) {
-      console.error(e);
+      const data = await res.json();
+      if (data && !data.error) {
+        setExercises([...exercises, data]);
+        setIsExerciseModalOpen(false);
+        setExerciseForm({
+          name: '',
+          category: 'CHEST',
+          equipment: 'BARBELL',
+          instructions: '',
+        });
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -101,7 +108,14 @@ export default function CoachPage() {
       const res = await fetch('/api/user', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(clientForm),
+        body: JSON.stringify({
+          name: clientForm.name,
+          targetWeight: parseFloat(clientForm.targetWeight) || 75.0,
+          dailyCaloriesTarget: parseInt(clientForm.dailyCaloriesTarget) || 2500,
+          proteinTarget: parseInt(clientForm.proteinTarget) || 185,
+          carbsTarget: parseInt(clientForm.carbsTarget) || 260,
+          fatsTarget: parseInt(clientForm.fatsTarget) || 65,
+        }),
       });
       const updated = await res.json();
       if (updated && !updated.error) {
@@ -373,10 +387,10 @@ export default function CoachPage() {
                   Target Weight (kg)
                 </label>
                 <input
-                  type="number"
-                  step="0.1"
+                  type="text"
+                  inputMode="decimal"
                   value={clientForm.targetWeight}
-                  onChange={(e) => setClientForm({ ...clientForm, targetWeight: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setClientForm({ ...clientForm, targetWeight: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl bg-surface-2 border border-border text-sm font-mono text-white"
                 />
               </div>
@@ -386,9 +400,10 @@ export default function CoachPage() {
                   Daily Calorie Target (kcal)
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   value={clientForm.dailyCaloriesTarget}
-                  onChange={(e) => setClientForm({ ...clientForm, dailyCaloriesTarget: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setClientForm({ ...clientForm, dailyCaloriesTarget: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl bg-surface-2 border border-border text-sm font-mono text-white"
                 />
               </div>
@@ -399,9 +414,10 @@ export default function CoachPage() {
                     Protein (g)
                   </label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={clientForm.proteinTarget}
-                    onChange={(e) => setClientForm({ ...clientForm, proteinTarget: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setClientForm({ ...clientForm, proteinTarget: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-surface-2 border border-border text-sm font-mono text-white text-center"
                   />
                 </div>
@@ -410,9 +426,10 @@ export default function CoachPage() {
                     Carbs (g)
                   </label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={clientForm.carbsTarget}
-                    onChange={(e) => setClientForm({ ...clientForm, carbsTarget: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setClientForm({ ...clientForm, carbsTarget: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-surface-2 border border-border text-sm font-mono text-white text-center"
                   />
                 </div>
@@ -421,9 +438,10 @@ export default function CoachPage() {
                     Fats (g)
                   </label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={clientForm.fatsTarget}
-                    onChange={(e) => setClientForm({ ...clientForm, fatsTarget: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setClientForm({ ...clientForm, fatsTarget: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-surface-2 border border-border text-sm font-mono text-white text-center"
                   />
                 </div>

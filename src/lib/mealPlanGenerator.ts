@@ -313,7 +313,7 @@ export const MASTER_RECIPES: MealRecipeMaster[] = [
     nameBg: 'Пълнозърнеста паста с риба тон, царевица и дресинг от кисело мляко',
     category: 'MAIN',
     dietTags: ['BALANCED', 'MEDITERRANEAN', 'PESCATARIAN'],
-    containsIngredients: ['tuna', 'pasta_gluten', 'corn', 'yogurt_lactose', 'cucumbers'],
+    containsIngredients: ['tuna', 'pasta_gluten', 'corn', 'yogurt_bulgarian', 'cucumbers'],
     photoUrl: 'https://images.unsplash.com/photo-1551248429-40975aa4de74?w=800&auto=format&fit=crop&q=80',
     description: 'Chilled al-dente whole grain fusilli with solid light tuna, sweet corn and high-protein strained yogurt herb dressing.',
     prepTimeMinutes: 12,

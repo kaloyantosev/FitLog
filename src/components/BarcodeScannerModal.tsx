@@ -40,7 +40,7 @@ export default function BarcodeScannerModal({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [scannedProduct, setScannedProduct] = useState<any | null>(null);
-  const [servingGrams, setServingGrams] = useState<number>(100);
+  const [servingGrams, setServingGrams] = useState<string>('100');
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
@@ -146,11 +146,12 @@ export default function BarcodeScannerModal({
 
   const handleAddScannedFood = () => {
     if (!scannedProduct) return;
-    const ratio = servingGrams / 100;
+    const gramsNum = parseFloat(String(servingGrams)) || 100;
+    const ratio = gramsNum / 100;
     const p100 = scannedProduct.per100g;
 
     const scaled = {
-      foodName: `${scannedProduct.productName}${scannedProduct.brand ? ` (${scannedProduct.brand})` : ''} - ${servingGrams}г`,
+      foodName: `${scannedProduct.productName}${scannedProduct.brand ? ` (${scannedProduct.brand})` : ''} - ${gramsNum}г`,
       calories: Math.round(p100.calories * ratio),
       protein: parseFloat((p100.protein * ratio).toFixed(1)),
       carbs: parseFloat((p100.carbs * ratio).toFixed(1)),
@@ -356,11 +357,10 @@ export default function BarcodeScannerModal({
                 <span className="text-xs text-text-secondary font-medium">Колко грама изядохте?</span>
                 <div className="flex items-center gap-1.5">
                   <input
-                    type="number"
-                    min="1"
-                    max="3000"
+                    type="text"
+                    inputMode="numeric"
                     value={servingGrams}
-                    onChange={(e) => setServingGrams(Math.max(1, parseInt(e.target.value) || 0))}
+                    onChange={(e) => setServingGrams(e.target.value)}
                     className="w-20 px-2.5 py-1 text-right font-mono font-bold text-sm bg-surface-1 border border-border rounded-lg text-white focus:outline-none focus:border-white/50"
                   />
                   <span className="text-xs text-text-muted font-bold">г</span>
@@ -373,8 +373,8 @@ export default function BarcodeScannerModal({
                 min="10"
                 max="1000"
                 step="5"
-                value={servingGrams}
-                onChange={(e) => setServingGrams(parseInt(e.target.value) || 100)}
+                value={parseFloat(servingGrams) || 100}
+                onChange={(e) => setServingGrams(e.target.value)}
                 className="w-full accent-blue-500 cursor-pointer"
               />
 
@@ -383,9 +383,9 @@ export default function BarcodeScannerModal({
                 {scannedProduct.packageGrams && (
                   <button
                     type="button"
-                    onClick={() => setServingGrams(scannedProduct.packageGrams)}
+                    onClick={() => setServingGrams(String(scannedProduct.packageGrams))}
                     className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
-                      servingGrams === scannedProduct.packageGrams
+                      parseFloat(servingGrams) === scannedProduct.packageGrams
                         ? 'bg-emerald-500 text-black shadow'
                         : 'bg-surface-2 text-emerald-400 hover:bg-surface-1 border border-emerald-500/30'
                     }`}
@@ -396,24 +396,24 @@ export default function BarcodeScannerModal({
                 {!scannedProduct.packageGrams && (
                   <button
                     type="button"
-                    onClick={() => setServingGrams(400)}
+                    onClick={() => setServingGrams('400')}
                     className="px-2.5 py-1 rounded-lg text-xs font-bold bg-surface-2 text-emerald-400 hover:bg-surface-1 border border-emerald-500/30"
                   >
                     ⭐ Цялото (400г)
                   </button>
                 )}
-                <button type="button" onClick={() => setServingGrams(50)} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === 50 ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>50г</button>
-                <button type="button" onClick={() => setServingGrams(100)} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === 100 ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>100г</button>
-                <button type="button" onClick={() => setServingGrams(150)} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === 150 ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>150г</button>
-                <button type="button" onClick={() => setServingGrams(200)} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === 200 ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>200г</button>
-                <button type="button" onClick={() => setServingGrams(250)} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === 250 ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>250г</button>
-                <button type="button" onClick={() => setServingGrams(500)} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === 500 ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>500г</button>
+                <button type="button" onClick={() => setServingGrams('50')} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '50' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>50г</button>
+                <button type="button" onClick={() => setServingGrams('100')} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '100' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>100г</button>
+                <button type="button" onClick={() => setServingGrams('150')} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '150' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>150г</button>
+                <button type="button" onClick={() => setServingGrams('200')} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '200' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>200г</button>
+                <button type="button" onClick={() => setServingGrams('250')} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '250' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>250г</button>
+                <button type="button" onClick={() => setServingGrams('500')} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '500' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>500г</button>
               </div>
             </div>
 
             {/* Calculated Macros for Chosen Grams */}
             {(() => {
-              const ratio = servingGrams / 100;
+              const ratio = (parseFloat(servingGrams) || 0) / 100;
               const p100 = scannedProduct.per100g;
               const cal = Math.round(p100.calories * ratio);
               const p = (p100.protein * ratio).toFixed(1);

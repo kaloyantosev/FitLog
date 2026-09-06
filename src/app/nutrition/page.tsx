@@ -77,7 +77,7 @@ export default function NutritionPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<FoodDatabaseItem[]>(BULGARIAN_AND_GLOBAL_FOODS.slice(0, 8));
   const [selectedDbItem, setSelectedDbItem] = useState<FoodDatabaseItem | null>(null);
-  const [portionGrams, setPortionGrams] = useState<number>(100);
+  const [portionGrams, setPortionGrams] = useState<string>('100');
   const [activeAddTab, setActiveAddTab] = useState<'SEARCH' | 'CUSTOM'>('SEARCH');
 
   // Barcode & Photo Scanner Modal state
@@ -98,11 +98,11 @@ export default function NutritionPage() {
   // Edit Targets Modal state
   const [isTargetModalOpen, setIsTargetModalOpen] = useState(false);
   const [targetsForm, setTargetsForm] = useState({
-    dailyCaloriesTarget: 2500,
-    proteinTarget: 185,
-    carbsTarget: 260,
-    fatsTarget: 65,
-    waterTargetMl: 3500,
+    dailyCaloriesTarget: '2500',
+    proteinTarget: '185',
+    carbsTarget: '260',
+    fatsTarget: '65',
+    waterTargetMl: '3500',
   });
 
   useEffect(() => {
@@ -125,11 +125,11 @@ export default function NutritionPage() {
       if (userRes && !userRes.error) {
         setUser(userRes);
         setTargetsForm({
-          dailyCaloriesTarget: userRes.dailyCaloriesTarget || 2500,
-          proteinTarget: userRes.proteinTarget || 185,
-          carbsTarget: userRes.carbsTarget || 260,
-          fatsTarget: userRes.fatsTarget || 65,
-          waterTargetMl: userRes.waterTargetMl || 3500,
+          dailyCaloriesTarget: String(userRes.dailyCaloriesTarget || 2500),
+          proteinTarget: String(userRes.proteinTarget || 185),
+          carbsTarget: String(userRes.carbsTarget || 260),
+          fatsTarget: String(userRes.fatsTarget || 65),
+          waterTargetMl: String(userRes.waterTargetMl || 3500),
         });
 
         // Parse or synthesize 7-day meal plan
@@ -234,7 +234,13 @@ export default function NutritionPage() {
       const res = await fetch('/api/user', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(targetsForm),
+        body: JSON.stringify({
+          dailyCaloriesTarget: parseInt(targetsForm.dailyCaloriesTarget) || 2500,
+          proteinTarget: parseInt(targetsForm.proteinTarget) || 185,
+          carbsTarget: parseInt(targetsForm.carbsTarget) || 260,
+          fatsTarget: parseInt(targetsForm.fatsTarget) || 65,
+          waterTargetMl: parseInt(targetsForm.waterTargetMl) || 3500,
+        }),
       });
       const updated = await res.json();
       if (updated && !updated.error) {
@@ -1423,9 +1429,10 @@ export default function NutritionPage() {
                       <div className="flex items-center gap-2">
                         <label className="text-text-muted text-[11px]">Грамаж:</label>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
                           value={portionGrams}
-                          onChange={(e) => setPortionGrams(Math.max(1, parseInt(e.target.value) || 0))}
+                          onChange={(e) => setPortionGrams(e.target.value)}
                           className="w-16 px-2 py-1 bg-surface-1 border border-border rounded-lg text-white font-mono text-xs text-center"
                         />
                         <span className="text-xs text-text-muted">г</span>
@@ -1433,14 +1440,14 @@ export default function NutritionPage() {
                     </div>
 
                     <div className="flex items-center justify-between text-xs font-mono text-blue-300">
-                      <span>Кал: {Math.round(selectedDbItem.caloriesPer100g * (portionGrams / 100))} ккал</span>
-                      <span>P: {(selectedDbItem.proteinPer100g * (portionGrams / 100)).toFixed(1)}г</span>
-                      <span>C: {(selectedDbItem.carbsPer100g * (portionGrams / 100)).toFixed(1)}г</span>
-                      <span>F: {(selectedDbItem.fatsPer100g * (portionGrams / 100)).toFixed(1)}г</span>
+                      <span>Кал: {Math.round(selectedDbItem.caloriesPer100g * ((parseFloat(portionGrams) || 0) / 100))} ккал</span>
+                      <span>P: {(selectedDbItem.proteinPer100g * ((parseFloat(portionGrams) || 0) / 100)).toFixed(1)}г</span>
+                      <span>C: {(selectedDbItem.carbsPer100g * ((parseFloat(portionGrams) || 0) / 100)).toFixed(1)}г</span>
+                      <span>F: {(selectedDbItem.fatsPer100g * ((parseFloat(portionGrams) || 0) / 100)).toFixed(1)}г</span>
                     </div>
 
                     <button
-                      onClick={() => handleAddDbFood(selectedDbItem, portionGrams, selectedMealType)}
+                      onClick={() => handleAddDbFood(selectedDbItem, parseFloat(portionGrams) || 100, selectedMealType)}
                       className="w-full py-2 bg-blue-500 text-black font-bold text-xs rounded-xl hover:bg-blue-400 transition-all shadow-md"
                     >
                       Добави в дневника
@@ -1548,9 +1555,10 @@ export default function NutritionPage() {
               <div>
                 <label className="block text-text-muted mb-1 font-medium">Калории (ккал)</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   value={targetsForm.dailyCaloriesTarget}
-                  onChange={(e) => setTargetsForm({ ...targetsForm, dailyCaloriesTarget: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setTargetsForm({ ...targetsForm, dailyCaloriesTarget: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-surface-2 border border-border text-white font-mono"
                 />
               </div>
@@ -1558,27 +1566,30 @@ export default function NutritionPage() {
                 <div>
                   <label className="block text-text-muted mb-1 font-medium">Протеин (г)</label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={targetsForm.proteinTarget}
-                    onChange={(e) => setTargetsForm({ ...targetsForm, proteinTarget: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setTargetsForm({ ...targetsForm, proteinTarget: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-surface-2 border border-border text-white font-mono"
                   />
                 </div>
                 <div>
                   <label className="block text-text-muted mb-1 font-medium">Въгл. (г)</label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={targetsForm.carbsTarget}
-                    onChange={(e) => setTargetsForm({ ...targetsForm, carbsTarget: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setTargetsForm({ ...targetsForm, carbsTarget: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-surface-2 border border-border text-white font-mono"
                   />
                 </div>
                 <div>
                   <label className="block text-text-muted mb-1 font-medium">Мазнини (г)</label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={targetsForm.fatsTarget}
-                    onChange={(e) => setTargetsForm({ ...targetsForm, fatsTarget: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setTargetsForm({ ...targetsForm, fatsTarget: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-surface-2 border border-border text-white font-mono"
                   />
                 </div>
@@ -1586,9 +1597,10 @@ export default function NutritionPage() {
               <div>
                 <label className="block text-text-muted mb-1 font-medium">Вода (мл)</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   value={targetsForm.waterTargetMl}
-                  onChange={(e) => setTargetsForm({ ...targetsForm, waterTargetMl: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setTargetsForm({ ...targetsForm, waterTargetMl: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-surface-2 border border-border text-white font-mono"
                 />
               </div>

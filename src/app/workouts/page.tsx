@@ -295,7 +295,7 @@ function WorkoutsContent() {
       const completedSets = ex.sets.filter((s) => s.isCompleted);
       totalSets += completedSets.length;
       completedSets.forEach((s) => {
-        totalVolumeKg += (s.weightKg || 0) * (s.reps || 0);
+        totalVolumeKg += (parseFloat(String(s.weightKg)) || 0) * (s.reps || 0);
       });
 
       return {
@@ -303,7 +303,7 @@ function WorkoutsContent() {
         orderIndex: orderIdx,
         sets: ex.sets.map((s) => ({
           setNumber: s.setNumber,
-          weightKg: s.weightKg,
+          weightKg: parseFloat(String(s.weightKg)) || 0,
           reps: s.reps,
           rpe: s.rpe,
           isCompleted: s.isCompleted,
@@ -611,11 +611,11 @@ function WorkoutsContent() {
                       {/* Weight (Editable, pre-calculated from questionnaire) */}
                       <div className="col-span-4">
                         <input
-                          type="number"
-                          step="0.5"
+                          type="text"
+                          inputMode="decimal"
                           placeholder="0"
-                          value={s.weightKg || ''}
-                          onChange={(e) => updateSet(exIdx, sIdx, 'weightKg', parseFloat(e.target.value) || 0)}
+                          value={s.weightKg ?? ''}
+                          onChange={(e) => updateSet(exIdx, sIdx, 'weightKg', e.target.value)}
                           className="w-full px-3 py-1.5 rounded-lg bg-surface-3 border border-border text-sm font-mono text-white text-center font-bold focus:outline-none focus:border-blue-500"
                         />
                       </div>

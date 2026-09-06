@@ -2,45 +2,29 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { 
-  Dumbbell, 
   Sparkles, 
   ArrowRight, 
   ArrowLeft, 
-  Check, 
   Brain, 
   Flame, 
   Zap, 
   Moon, 
   Droplets, 
-  Target, 
   Activity, 
-  Play, 
-  Award,
-  Video,
-  UserCheck,
-  CheckCircle2,
-  Calendar,
-  Clock,
-  Lock,
-  Mail,
-  User as UserIcon,
-  Utensils,
-  Search,
-  X,
-  Apple,
-  Eye,
-  Layers,
-  ShieldCheck,
-  LogIn,
-  Plus
+  Clock, 
+  Lock, 
+  Mail, 
+  User as UserIcon, 
+  Utensils, 
+  Search, 
+  X, 
+  LogIn, 
+  Plus,
+  Check
 } from 'lucide-react';
-import { synthesizeProgram, GeneratedProgramResult } from '@/lib/programSynthesizer';
-import ExerciseVideoModal from '@/components/ExerciseVideoModal';
-import MealIngredientsModal from '@/components/MealIngredientsModal';
+import { synthesizeProgram } from '@/lib/programSynthesizer';
 import { SEARCHABLE_INGREDIENTS, filterIngredients } from '@/lib/ingredientsDatabase';
-import { MealOption } from '@/types';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -51,10 +35,11 @@ export default function RegisterPage() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginStatus, setLoginStatus] = useState<string | null>(null);
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
 
-  // Form State - Numbers stored as strings for seamless mobile backspace & editing
+  // Form State - Numbers stored as strings for seamless mobile & PC editing
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -148,125 +133,165 @@ export default function RegisterPage() {
     });
   };
 
-  // Ingredient search query
-  const [ingredientSearch, setIngredientSearch] = useState('');
-
-  // Step 4 Blueprint Tabs
-  const [activeBlueprintTab, setActiveBlueprintTab] = useState<'WORKOUT' | 'MEALS'>('MEALS');
-  const [selectedMealDayIndex, setSelectedMealDayIndex] = useState(0); // 0 = Monday
-  const [selectedSlotOptionIndex, setSelectedSlotOptionIndex] = useState<Record<string, number>>({});
-
-  // Generated Plan Result
-  const [generatedResult, setGeneratedResult] = useState<GeneratedProgramResult | null>(null);
-  const [selectedExerciseForVideo, setSelectedExerciseForVideo] = useState<any | null>(null);
-  const [selectedMealForModal, setSelectedMealForModal] = useState<MealOption | null>(null);
-
-  // Questionnaire Definitions in 100% Bulgarian (Clean without ugly /6 badges)
-  const questions = [
+  // 6 Physiological & Lifestyle Questions (Clean UI without rank badges)
+  const questions: {
+    key: keyof typeof formData;
+    title: string;
+    description: string;
+    icon: any;
+    options: { score: number; label: string; desc: string }[];
+  }[] = [
     {
-      key: 'primaryGoalScale' as const,
-      title: 'Какво искате да постигнете? (Основна физиологична цел)',
-      icon: Target,
-      options: [
-        { val: 1, label: 'Агресивно изчистване на мазнини', desc: 'Бързо топене на подкожни мазнини с висок калориен дефицит.' },
-        { val: 2, label: 'Плавно и устойчиво орелефяване', desc: 'Постоянно, постепенно топене на мазнини със запазване на мускулна маса.' },
-        { val: 3, label: 'Телесна рекомпозиция', desc: 'Едновременно изгаряне на мазнини и изграждане на стегнат мускулен тонус.' },
-        { val: 4, label: 'Чиста мускулна маса (Lean Bulk)', desc: 'Покачване на плътни мускули с минимално задържане на мазнини.' },
-        { val: 5, label: 'Максимална мускулна маса (Mass Bulk)', desc: 'Ускорено покачване на общо тегло и масивен мускулен обем.' },
-        { val: 6, label: 'Максимална сила и силов трибой', desc: 'Фокус върху максимален 1RM вдигнат товар и нервно-мускулна сила.' },
-      ],
-    },
-    {
-      key: 'bodyCompositionScale' as const,
-      title: 'Как изглеждате в момента? (Телесна композиция)',
-      icon: Activity,
-      options: [
-        { val: 1, label: 'Много висок % мазнини (>30% мъже / >38% жени)', desc: 'Значително натрупване на мастна тъкан около талията и бедрата.' },
-        { val: 2, label: 'Умерено завишен % мазнини (22-29% / 30-37%)', desc: 'Мека физика без видима мускулна сепарация.' },
-        { val: 3, label: '"Skinny-Fat" (Слабо телосложение с мазнини)', desc: 'Тънки крайници със задържане на мазнини около корема.' },
-        { val: 4, label: 'Средно атлетично (15-20% / 23-28%)', desc: 'Добра мускулна основа с лек покривен слой мазнини.' },
-        { val: 5, label: 'Атлетично и орелефено (11-14% / 18-22%)', desc: 'Видими коремни плочки и ясни мускулни очертания.' },
-        { val: 6, label: 'Екстремно изчистено (<10% / <16%)', desc: 'Състезателна форма, дълбоки мускулни деления и венозност.' },
-      ],
-    },
-    {
-      key: 'activityLevelScale' as const,
-      title: 'Какъв е вашият начин на живот? (Ежедневна активност извън залата)',
+      key: 'primaryGoalScale',
+      title: 'Каква е вашата основна фитнес цел?',
+      description: 'Това ще определи калорийния баланс, макросите и обема на сериите.',
       icon: Flame,
       options: [
-        { val: 1, label: 'Заседнал начин на живот', desc: 'Работа на бюро по цял ден, под 4,000 крачки дневно.' },
-        { val: 2, label: 'Ниска активност', desc: 'Основно седяща работа с леки разходки (4,000 - 7,000 крачки).' },
-        { val: 3, label: 'Умерена активност', desc: 'Динамично ежедневие, раздвижване (7,000 - 10,000 крачки).' },
-        { val: 4, label: 'Висока активност', desc: 'Работа на крак или физическо натоварване (10,000 - 14,000 крачки).' },
-        { val: 5, label: 'Много висока активност', desc: 'Тежък физически труд или продължително ходене (15,000+ крачки).' },
-        { val: 6, label: 'Елитен атлет', desc: 'Многократни двуразови тренировки и екстремен енергоразход.' },
+        { score: 1, label: 'Агресивно изчистване на мазнини', desc: 'Калориен дефицит с висок протеин за защита на мускула' },
+        { score: 2, label: 'Умерено отслабване и тонус', desc: 'Балансирано сваляне на килограми без излишен глад' },
+        { score: 3, label: 'Чиста телесна рекомпозиция', desc: 'Едновременно изгаряне на мазнини и изграждане на мускул' },
+        { score: 4, label: 'Чисто качване на мускулна маса (Lean Bulk)', desc: 'Лек калориен излишък с акцент върху чиста маса' },
+        { score: 5, label: 'Максимална хипертрофия & Мускулен обем', desc: 'Солиден излишък и висок тренировъчен обем' },
+        { score: 6, label: 'Чиста сила и експлозивна мощ', desc: 'Тежки базови движения в нисък диапазон на повторения' },
       ],
     },
     {
-      key: 'experienceScale' as const,
-      title: 'Тренировъчен опит с тежести и фитнес',
-      icon: Dumbbell,
+      key: 'activityLevelScale',
+      title: 'Какво е вашето ежедневно ниво на физическа активност?',
+      description: 'Движение извън залата (работа, крачки, ежедневие).',
+      icon: Activity,
       options: [
-        { val: 1, label: 'Пълен начинаещ (0 - 3 месеца)', desc: 'Нулев опит с базови щанги и дъмбели, нужда от основни насоки.' },
-        { val: 2, label: 'Начинаещ с базов опит (3 - 12 месеца)', desc: 'Познаване на основните упражнения, но непостоянна техника.' },
-        { val: 3, label: 'Средно напреднал (1 - 3 години)', desc: 'Редовни последователни тренировки и добра кинетична форма.' },
-        { val: 4, label: 'Напреднал (3 - 5 години)', desc: 'Развита мускулна координация и познаване на RPE зоните.' },
-        { val: 5, label: 'Опитен ветеран (5 - 8 години)', desc: 'Дълбоко разбиране на периодизацията и интензитета.' },
-        { val: 6, label: 'Елитен бодибилдър / Силов атлет (8+ години)', desc: 'Максимална нервно-мускулна ефективност и фокус.' },
+        { score: 1, label: 'Заседнал начин на живот', desc: 'Работа на бюро, под 4,000 крачки на ден' },
+        { score: 2, label: 'Лека активност', desc: 'Офис работа, но кратки разходки (4,000 - 7,000 крачки)' },
+        { score: 3, label: 'Умерена активност', desc: 'Редовно движение, 7,000 - 10,000 крачки дневно' },
+        { score: 4, label: 'Активен динамичен режим', desc: 'Подвижна професия, 10,000 - 14,000 крачки дневно' },
+        { score: 5, label: 'Много висока активност', desc: 'Тежък физически труд или интензивни допълнителни спортове' },
+        { score: 6, label: 'Елитно натоварване / Професионален атлет', desc: 'Двуразови тренировки или екстремен физически разход' },
       ],
     },
     {
-      key: 'stressScale' as const,
-      title: 'Ниво на ежедневен стрес и ментално напрежение',
+      key: 'experienceScale',
+      title: 'Какъв е вашият предишен тренировъчен опит с тежести?',
+      description: 'Помага за правилен подбор на RPE интензивност и упражнения.',
       icon: Zap,
       options: [
-        { val: 1, label: 'Пълен покой и хармония', desc: 'Спокоен начин на живот без психо-емоционално напрежение.' },
-        { val: 2, label: 'Нисък контролиран стрес', desc: 'Рядко възникващи напрегнати ситуации.' },
-        { val: 3, label: 'Умерен балансиран стрес', desc: 'Обичаен работен ритъм с нормално възстановяване.' },
-        { val: 4, label: 'Повишен стрес', desc: 'Често напрежение в работата или личния живот.' },
-        { val: 5, label: 'Висок системен стрес', desc: 'Хронично напрежение, влияещо на възстановяването.' },
-        { val: 6, label: 'Екстремен стрес (Бърнаут)', desc: 'Претоварване на нервната система и високи нива на кортизол.' },
+        { score: 1, label: 'Пълен начинаещ', desc: 'Никога не съм влизал във фитнес зала или започвам отново от нулата' },
+        { score: 2, label: 'Начинаещ с базов опит', desc: 'Тренирал съм 1-6 месеца, уча се на правилна техника' },
+        { score: 3, label: 'Средно напреднал', desc: '1-2 години редовни тренировки с познаване на базовите движения' },
+        { score: 4, label: 'Солидно напреднал', desc: '3-5 години постоянен стаж и добро владеене на мускулния контрол' },
+        { score: 5, label: 'Опитен атлет', desc: 'Над 5 години последователни структурирани тренировки' },
+        { score: 6, label: 'Майстор / Състезател', desc: 'Дългогодишен елитен стаж, тренировки до абсолютен отказ' },
       ],
     },
     {
-      key: 'sleepScale' as const,
-      title: 'Качество и продължителност на съня',
+      key: 'stressScale',
+      title: 'Какво е нивото на стрес в ежедневието ви?',
+      description: 'Хроничният стрес влияе директно върху възстановяването и кортизола.',
+      icon: Brain,
+      options: [
+        { score: 1, label: 'Минимален стрес', desc: 'Спокоен и подреден ритъм на живот' },
+        { score: 2, label: 'Нисък стрес', desc: 'Редки моменти на напрежение' },
+        { score: 3, label: 'Умерен стрес', desc: 'Нормално напрежение от работа и ангажименти' },
+        { score: 4, label: 'Повишен стрес', desc: 'Динамични работни срокове и чести притеснения' },
+        { score: 5, label: 'Висок постоянен стрес', desc: 'Хронично напрежение и умора' },
+        { score: 6, label: 'Екстремен стрес & Прегаряне (Burnout)', desc: 'Постоянен психически натиск и изтощение' },
+      ],
+    },
+    {
+      key: 'sleepScale',
+      title: 'Колко качествен и продължителен е сънят ви?',
+      description: 'Основният двигател на мускулния растеж и анаболните хормони.',
       icon: Moon,
       options: [
-        { val: 1, label: 'Критично лош сън (< 5 часа)', desc: 'Често безсъние, трудно заспиване и постоянна умора.' },
-        { val: 2, label: 'Накъсан сън (5 - 6 часа)', desc: 'Многократни събуждания през нощта и сънливост.' },
-        { val: 3, label: 'Средно качество (6 - 7 часа)', desc: 'Приемлива продължителност с лека умора сутрин.' },
-        { val: 4, label: 'Добър възстановителен сън (7 - 8 часа)', desc: 'Дълбок непрекъснат сън и висока кондиция.' },
-        { val: 5, label: 'Отличен сън (8 - 9 часа)', desc: 'Пълно мускулно и неврологично презареждане.' },
-        { val: 6, label: 'Перфектна хигиена на съня (9+ часа)', desc: 'Дълбоки REM фази, събуждане без будилник.' },
+        { score: 1, label: 'Критично нарушен сън', desc: 'Под 5 часа на нощ, чести събуждания и безсъние' },
+        { score: 2, label: 'Недостатъчен сън', desc: '5-6 часа сън, събуждане с чувство за умора' },
+        { score: 3, label: 'Среден сън', desc: '6-7 часа с умерено възстановяване' },
+        { score: 4, label: 'Добър пълноценен сън', desc: '7-8 часа качествен сън всяка нощ' },
+        { score: 5, label: 'Отличен дълбок сън', desc: '8-9 часа дълбок непрекъснат сън' },
+        { score: 6, label: 'Оптимален възстановителен сън', desc: 'Над 8.5 часа с пълен контрол на циркадния ритъм' },
       ],
     },
     {
-      key: 'dietDisciplineScale' as const,
-      title: 'Дисциплина и постоянство в храненето',
+      key: 'dietDisciplineScale',
+      title: 'Как оценявате хранителната си дисциплина?',
+      description: 'Помага за адаптиране на гъвкавостта на хранителния план.',
       icon: Droplets,
       options: [
-        { val: 1, label: 'Хаотично хранене', desc: 'Липса на режим, честа консумация на джънк фууд.' },
-        { val: 2, label: 'Опити за режим с чести залитания', desc: 'Хранене по план през деня и чийтвания вечер.' },
-        { val: 3, label: 'Умерена дисциплина (~70% постоянство)', desc: 'Балансирано хранене през делничните дни.' },
-        { val: 4, label: 'Стриктна рутина (~85% постоянство)', desc: 'Претегляне на храната и проследяване на макроси.' },
-        { val: 5, label: 'Висока дисциплина (~95% постоянство)', desc: 'Стриктно приготвяне на кутии с храна.' },
-        { val: 6, label: '100% професионална точност', desc: 'Грам за грам прецизност без никакви отклонения.' },
+        { score: 1, label: 'Хаотично хранене', desc: 'Често пропускам хранения или се храня на крак с бърза храна' },
+        { score: 2, label: 'Базова дисциплина', desc: 'Старая се да ям качествена храна, но често се изкушавам' },
+        { score: 3, label: 'Умерено постоянство', desc: 'Храня се здравословно в 70-80% от времето' },
+        { score: 4, label: 'Висока хранителна култура', desc: 'Следя порциите си и рядко излизам от добрия режим' },
+        { score: 5, label: 'Стриктен контрол на макронутриенти', desc: 'Редовно претеглям порциите си и знам какво ям' },
+        { score: 6, label: 'Безупречна атлетична прецизност', desc: '100% стриктност към храната без компромиси' },
       ],
     },
   ];
 
+  // Dietary Preferences Options
+  const dietStyles = [
+    {
+      id: 'BALANCED',
+      title: 'Балансиран фитнес план',
+      desc: 'Оптимално съотношение на протеини, полезни мазнини и сложни въглехидрати.',
+    },
+    {
+      id: 'HIGH_PROTEIN_LOW_CARB',
+      title: 'Висок протеин & Ниски въглехидрати (Low-Carb)',
+      desc: 'Фокус върху чисти меса, риба, яйца, млечни и зеленчуци за бързо изчистване.',
+    },
+    {
+      id: 'MEDITERRANEAN',
+      title: 'Средиземноморски стил',
+      desc: 'Богат на зехтин, риба, морски дарове, зеленчуци и пълнозърнести храни.',
+    },
+    {
+      id: 'BODYBUILDING_PREP',
+      title: 'Класически Бодибилдинг план',
+      desc: 'Прецизни чисти източници: пилешко, ориз, овес, яйчни белтъци, телешко и броколи.',
+    },
+    {
+      id: 'PESCATARIAN',
+      title: 'Пескетариански режим',
+      desc: 'Без месо от птици/животни; включва риба, морски дарове, млечни продукти и яйца.',
+    },
+    {
+      id: 'VEGETARIAN',
+      title: 'Вегетариански план',
+      desc: 'Растителна основа плюс яйца, сирене, кашкавал, извара и протеин.',
+    },
+  ];
+
+  const [ingredientSearch, setIngredientSearch] = useState('');
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoginStatus('Успешно влизане! Пренасочване към таблото...');
-    setTimeout(() => {
-      router.push('/');
-    }, 800);
+    setLoading(true);
+    setLoginStatus(null);
+    try {
+      const res = await fetch('/api/user');
+      const data = await res.json();
+      if (data && !data.error) {
+        setLoginStatus('Успешен вход! Пренасочване към портала...');
+        setTimeout(() => {
+          router.push('/');
+        }, 800);
+      } else {
+        setLoginStatus('Грешка при вход. Моля проверете вашите данни.');
+      }
+    } catch (err) {
+      setLoginStatus('Мрежова грешка при свързване със сървъра.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSynthesizeAndAdvance = () => {
+  // Finalize Registration & Instantly synthesize and enter dashboard
+  const handleFinalizeAndEnterDashboard = async () => {
     setLoading(true);
+    setLoadingMessage('AI синтезира вашата персонализирана програма...');
+    
     try {
+      // 1. Synthesize Program
       const result = synthesizeProgram({
         name: formData.name || 'Атлет',
         email: formData.email,
@@ -293,25 +318,14 @@ export default function RegisterPage() {
         snackingHabits: formData.snackingHabits,
       });
 
-      setGeneratedResult(result);
-      setStep(4);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+      setLoadingMessage('Запазване на профила и генериране на тренировъчни шаблони...');
 
-  const handleFinalizeRegistration = async () => {
-    setLoading(true);
-    try {
-      if (!generatedResult) return;
-
-      const res = await fetch('/api/user', {
+      // 2. Save User to Database
+      await fetch('/api/user', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name,
+          name: formData.name || 'Атлет',
           email: formData.email,
           gender: formData.gender,
           age: parseInt(String(formData.age)) || 25,
@@ -321,11 +335,11 @@ export default function RegisterPage() {
           trainingDaysPerWeek: formData.trainingDaysPerWeek,
           preferredTrainingHour: formData.preferredTrainingHour,
           emailNotificationsEnabled: formData.emailNotificationsEnabled,
-          dailyCaloriesTarget: generatedResult.dailyCaloriesTarget,
-          proteinTarget: generatedResult.proteinTarget,
-          carbsTarget: generatedResult.carbsTarget,
-          fatsTarget: generatedResult.fatsTarget,
-          waterTargetMl: generatedResult.waterTargetMl,
+          dailyCaloriesTarget: result.dailyCaloriesTarget,
+          proteinTarget: result.proteinTarget,
+          carbsTarget: result.carbsTarget,
+          fatsTarget: result.fatsTarget,
+          waterTargetMl: result.waterTargetMl,
           priorityMuscleGroups: formData.priorityMuscleGroups,
           avoidedMuscleAreas: formData.avoidedMuscleAreas,
           foodPreferences: formData.foodPreferences,
@@ -333,32 +347,38 @@ export default function RegisterPage() {
           mealsPerDay: formData.mealsPerDay,
           mealTiming: formData.mealTiming,
           snackingHabits: formData.snackingHabits,
-          mealPlanData: generatedResult.sevenDayMealPlan,
+          mealPlanData: result.sevenDayMealPlan,
         }),
       });
 
-      // Clear existing templates and seed the newly synthesized templates
-      await fetch('/api/templates/reset', { method: 'POST' });
-
-      for (const tmpl of generatedResult.templates) {
-        await fetch('/api/templates', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: tmpl.title,
-            description: tmpl.description,
-            category: tmpl.category,
-            estimatedDurationMinutes: tmpl.estimatedDurationMinutes,
-            exercises: tmpl.exercises,
-          }),
-        });
+      // 3. Clear existing templates and seed the newly synthesized templates
+      try {
+        await fetch('/api/templates/reset', { method: 'POST' });
+        for (const tmpl of result.templates) {
+          await fetch('/api/templates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: tmpl.title,
+              description: tmpl.description,
+              category: tmpl.category,
+              estimatedDurationMinutes: tmpl.estimatedDurationMinutes,
+              exercises: tmpl.exercises,
+            }),
+          });
+        }
+      } catch (tmplErr) {
+        console.warn('Templates seeding warning:', tmplErr);
       }
 
-      router.push('/');
+      setLoadingMessage('Готово! Пренасочване към главното табло...');
+      
+      // 4. Directly redirect to dashboard
+      window.location.href = '/';
     } catch (err) {
       console.error('Registration failed:', err);
-    } finally {
-      setLoading(false);
+      // Fallback redirect even on network quirk
+      window.location.href = '/';
     }
   };
 
@@ -411,7 +431,7 @@ export default function RegisterPage() {
         <div className="max-w-md mx-auto p-8 rounded-3xl bg-surface-1 border border-border space-y-6 shadow-2xl">
           <div className="text-center space-y-2">
             <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 mx-auto">
-              <UserCheck className="w-6 h-6" />
+              <Sparkles className="w-6 h-6" />
             </div>
             <h2 className="text-2xl font-bold text-white">Вход за Атлети</h2>
             <p className="text-xs text-text-muted">
@@ -458,37 +478,37 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-white text-black font-bold text-xs sm:text-sm hover:bg-neutral-200 transition-all shadow-md active:scale-95"
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 disabled:opacity-50"
             >
-              Влез в Профила
+              {loading ? 'Влизане...' : 'Влез в Профила'}
+              <ArrowRight className="w-4 h-4" />
             </button>
           </form>
         </div>
       ) : (
-        /* REGISTER & QUESTIONNAIRE VIEW */
-        <div className="space-y-8">
-          {/* Header Progress Stepper */}
+        /* REGISTRATION FLOW (3 Steps) */
+        <div className="space-y-6">
+          {/* Progress Header */}
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold uppercase tracking-wider">
-              <Brain className="w-3.5 h-3.5" />
-              AI Изграждане на Персонален План
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Стъпка {step} от 3</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
-              {step === 1 && '1. Базов Профил за Вход'}
-              {step === 2 && '2. Детайлен Въпросник за Физика и Начин на Живот'}
-              {step === 3 && '3. Хранителни Предпочитания & Изключени Съставки'}
-              {step === 4 && '4. Синтезиран Тренировъчен & Хранителен Протокол'}
+            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              {step === 1 && 'Базови Данни & Профил'}
+              {step === 2 && 'Физиологичен Въпросник & Мускулен Фокус'}
+              {step === 3 && 'Хранителни Предпочитания & Активация'}
             </h1>
             <p className="text-xs sm:text-sm text-text-muted max-w-xl mx-auto">
-              {step === 1 && 'Въведете основните си данни за създаване на профил в системата.'}
-              {step === 2 && 'Оценете вашите цели, начин на живот и изберете мускулните групи с приоритет.'}
-              {step === 3 && 'Изберете стил на хранене и маркирайте съставки, които желаете да изключите.'}
-              {step === 4 && 'Прегледайте синтезирания 7-дневен хранителен план, тренировъчните шаблони и настройте напомнянията си.'}
+              {step === 1 && 'Въведете вашите основни данни за контакт и тренировъчен профил.'}
+              {step === 2 && 'Отговорете на въпросите и изберете мускулни групи за персонализиране на тренировките.'}
+              {step === 3 && 'Изберете стил на хранене, изключете нежелани храни и настройте напомнянията си.'}
             </p>
 
-            {/* Stepper Dots */}
+            {/* Stepper Dots (3 Steps) */}
             <div className="flex items-center justify-center gap-2 pt-4">
-              {[1, 2, 3, 4].map((s) => (
+              {[1, 2, 3].map((s) => (
                 <div
                   key={s}
                   className={`h-2 rounded-full transition-all ${
@@ -503,8 +523,16 @@ export default function RegisterPage() {
             </div>
           </div>
 
+          {/* Loading Overlay */}
+          {loading && (
+            <div className="p-8 rounded-3xl bg-surface-1 border border-blue-500/40 text-center space-y-4 shadow-2xl animate-pulse">
+              <div className="w-12 h-12 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className="text-sm font-bold text-white">{loadingMessage || 'Обработка...'}</p>
+            </div>
+          )}
+
           {/* STEP 1: Basic Bio */}
-          {step === 1 && (
+          {!loading && step === 1 && (
             <div className="p-6 sm:p-8 rounded-3xl bg-surface-1 border border-border space-y-6 shadow-xl">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -590,7 +618,7 @@ export default function RegisterPage() {
           )}
 
           {/* STEP 2: Questionnaire & Detailed Physiology */}
-          {step === 2 && (
+          {!loading && step === 2 && (
             <div className="p-6 sm:p-8 rounded-3xl bg-surface-1 border border-border space-y-8 shadow-xl">
               {/* TOP PRIORITY: Height, Current Weight, Target Weight */}
               <div className="p-5 rounded-2xl bg-surface-2/70 border border-blue-500/30 space-y-4">
@@ -642,171 +670,65 @@ export default function RegisterPage() {
               <div className="space-y-6">
                 {questions.map((q) => {
                   const Icon = q.icon;
-                  const currentVal = formData[q.key];
+                  const currentVal = (formData as any)[q.key];
 
                   return (
                     <div key={q.key} className="space-y-3 pb-6 border-b border-border/60">
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm font-bold text-white flex items-center gap-2">
                           <Icon className="w-4 h-4 text-blue-400" />
-                          {q.title}
+                          <span>{q.title}</span>
                         </h4>
                       </div>
+                      <p className="text-xs text-text-muted">{q.description}</p>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                        {q.options.map((opt) => (
-                          <button
-                            key={opt.val}
-                            type="button"
-                            onClick={() => setFormData({ ...formData, [q.key]: opt.val })}
-                            className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all ${
-                              currentVal === opt.val
-                                ? 'bg-blue-600 text-white border-blue-400 shadow-md scale-[1.01]'
-                                : 'bg-surface-2/70 hover:bg-surface-2 border-border/70 text-neutral-300'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between font-bold text-xs">
-                              <span>{opt.label}</span>
-                              {currentVal === opt.val && <Check className="w-3.5 h-3.5 text-white stroke-[2.5]" />}
-                            </div>
-                            <p className={`text-[11px] mt-1 line-clamp-2 ${currentVal === opt.val ? 'text-blue-100' : 'text-text-muted'}`}>
-                              {opt.desc}
-                            </p>
-                          </button>
-                        ))}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-1">
+                        {q.options.map((opt) => {
+                          const isSelected = currentVal === opt.score;
+                          return (
+                            <button
+                              key={opt.score}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, [q.key]: opt.score })}
+                              className={`p-3.5 rounded-2xl border text-left transition-all ${
+                                isSelected
+                                  ? 'bg-blue-600/20 border-blue-500 shadow-md ring-1 ring-blue-500'
+                                  : 'bg-surface-2 hover:bg-surface-3 border-border/80 text-text-muted hover:text-white'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-neutral-200'}`}>
+                                  {opt.label}
+                                </span>
+                                {isSelected && <Check className="w-3.5 h-3.5 text-blue-400" />}
+                              </div>
+                              <p className="text-[11px] text-text-muted line-clamp-2 leading-relaxed">
+                                {opt.desc}
+                              </p>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Priority Muscle Groups (Specific Multi-Select) */}
-              <div className="p-5 sm:p-6 rounded-3xl bg-surface-2/80 border border-blue-500/30 space-y-4">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-blue-400" />
-                      Мускулни групи, на които искате да наблегнете с приоритет
-                    </h4>
-                    <span className="text-xs font-mono font-bold text-blue-400">
-                      {formData.priorityMuscleGroups.includes('BALANCED')
-                        ? 'Балансирано'
-                        : `${formData.priorityMuscleGroups.length} избрани`}
-                    </span>
-                  </div>
-                  <p className="text-xs text-text-muted mt-1">
-                    Можете да изберете <strong>повече от една мускулна група</strong> или да оставите „Балансирано цяло тяло“.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                  {priorityMuscleOptions.map((mg) => {
-                    const isSelected = formData.priorityMuscleGroups.includes(mg.id);
-
-                    return (
-                      <button
-                        key={mg.id}
-                        type="button"
-                        onClick={() => togglePriorityMuscle(mg.id)}
-                        className={`p-3 rounded-2xl border text-left flex items-start justify-between transition-all ${
-                          isSelected
-                            ? 'bg-blue-600 text-white font-bold shadow-md border-blue-400 scale-[1.01]'
-                            : 'bg-surface-3 hover:bg-surface-3/80 text-neutral-300 border-border'
-                        }`}
-                      >
-                        <div className="min-w-0 pr-2">
-                          <span className="text-xs font-bold block">{mg.label}</span>
-                          <span className={`text-[10px] mt-0.5 line-clamp-1 block ${isSelected ? 'text-blue-100' : 'text-text-muted'}`}>
-                            {mg.desc}
-                          </span>
-                        </div>
-                        <div
-                          className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${
-                            isSelected ? 'bg-white text-blue-600' : 'border border-border bg-surface-2 text-transparent'
-                          }`}
-                        >
-                          <Check className="w-3 h-3 stroke-[3]" />
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Avoided Area / Injury limitation (Specific Multi-Select) */}
-              <div className="p-5 sm:p-6 rounded-3xl bg-surface-2/80 border border-red-500/30 space-y-4">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-red-400" />
-                      Зони или упражнения, които НЕ желаете да тренирате (напр. контузия)
-                    </h4>
-                    <span className="text-xs font-mono font-bold text-red-400">
-                      {formData.avoidedMuscleAreas.length === 0
-                        ? 'Няма ограничения'
-                        : `${formData.avoidedMuscleAreas.length} зони`}
-                    </span>
-                  </div>
-                  <p className="text-xs text-text-muted mt-1">
-                    Можете да посочите <strong>повече от една зона</strong> или да оставите празно, ако нямате ограничения.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                  {avoidedMuscleOptions.map((av) => {
-                    const isSelected = av.id === 'NONE' 
-                      ? formData.avoidedMuscleAreas.length === 0 
-                      : formData.avoidedMuscleAreas.includes(av.id);
-
-                    return (
-                      <button
-                        key={av.id}
-                        type="button"
-                        onClick={() => toggleAvoidedMuscle(av.id)}
-                        className={`p-3 rounded-2xl border text-left flex items-start justify-between transition-all ${
-                          isSelected
-                            ? 'bg-red-500/20 text-red-200 border-red-500 shadow-md font-bold'
-                            : 'bg-surface-3 hover:bg-surface-3/80 text-neutral-300 border-border'
-                        }`}
-                      >
-                        <div className="min-w-0 pr-2">
-                          <span className="text-xs font-bold block">{av.label}</span>
-                          <span className="text-[10px] text-text-muted mt-0.5 line-clamp-1 block">
-                            {av.desc}
-                          </span>
-                        </div>
-                        <div
-                          className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${
-                            isSelected ? 'bg-red-500 text-white' : 'border border-border bg-surface-2 text-transparent'
-                          }`}
-                        >
-                          <Check className="w-3 h-3 stroke-[3]" />
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Training Days per Week */}
-              <div className="p-5 rounded-2xl bg-surface-2 border border-border space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-amber-400" />
-                    Колко дни в седмицата можете да тренирате?
-                  </span>
-                  <span className="text-xs font-mono font-bold text-amber-400">{formData.trainingDaysPerWeek} дни в седмицата</span>
-                </div>
+              {/* Training Days Per Week */}
+              <div className="p-5 rounded-2xl bg-surface-2/60 border border-border space-y-3">
+                <label className="block text-xs font-bold text-white">
+                  Колко дни в седмицата искате да тренирате?
+                </label>
                 <div className="grid grid-cols-5 gap-2">
                   {[1, 2, 3, 4, 5].map((d) => (
                     <button
                       key={d}
                       type="button"
                       onClick={() => setFormData({ ...formData, trainingDaysPerWeek: d })}
-                      className={`py-3 rounded-xl border text-center font-bold text-xs transition-all ${
+                      className={`py-3 rounded-xl font-mono text-xs sm:text-sm font-bold transition-all ${
                         formData.trainingDaysPerWeek === d
-                          ? 'bg-amber-500 text-black border-amber-400 shadow-md scale-105'
-                          : 'bg-surface-3 hover:bg-surface-3/80 border-border text-text-muted hover:text-white'
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-surface-3 text-text-muted hover:text-white border border-border'
                       }`}
                     >
                       {d} {d === 1 ? 'ден' : 'дни'}
@@ -815,7 +737,94 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-4">
+              {/* SPECIFIC PRIORITY MUSCLES (MULTI-SELECT) */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                    <span>Приоритетни мускулни групи (Фокус)</span>
+                  </h4>
+                  <span className="text-[11px] text-blue-400 font-semibold">
+                    * Можете да изберете повече от една
+                  </span>
+                </div>
+                <p className="text-xs text-text-muted">
+                  AI ще добави целеви обем, специализирани упражнения и по-висока честота за тези мускули.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1">
+                  {priorityMuscleOptions.map((opt) => {
+                    const isSelected = formData.priorityMuscleGroups.includes(opt.id);
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => togglePriorityMuscle(opt.id)}
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          isSelected
+                            ? 'bg-amber-500/15 border-amber-500 text-white shadow-sm ring-1 ring-amber-500/50'
+                            : 'bg-surface-2 hover:bg-surface-3 border-border text-neutral-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold truncate">{opt.label}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />}
+                        </div>
+                        <p className="text-[10px] text-text-muted truncate mt-0.5">{opt.desc}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* SPECIFIC AVOIDED MUSCLES / INJURY LIMITATIONS (MULTI-SELECT) */}
+              <div className="space-y-3 pt-4 border-t border-border/60">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                    <X className="w-4 h-4 text-red-400" />
+                    <span>Ограничения & Зони за щадене (Контузии)</span>
+                  </h4>
+                  <span className="text-[11px] text-red-400 font-semibold">
+                    * Можете да изберете повече от една
+                  </span>
+                </div>
+                <p className="text-xs text-text-muted">
+                  AI ще изключи компрометиращи упражнения и ще подбере щадящи ставите алтернативи.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1">
+                  {avoidedMuscleOptions.map((opt) => {
+                    const isSelected =
+                      opt.id === 'NONE'
+                        ? formData.avoidedMuscleAreas.length === 0
+                        : formData.avoidedMuscleAreas.includes(opt.id);
+
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => toggleAvoidedMuscle(opt.id)}
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          isSelected
+                            ? opt.id === 'NONE'
+                              ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold'
+                              : 'bg-red-500/20 border-red-500 text-red-300 font-bold ring-1 ring-red-500/50'
+                            : 'bg-surface-2 hover:bg-surface-3 border-border text-neutral-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold truncate">{opt.label}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 flex-shrink-0" />}
+                        </div>
+                        <p className="text-[10px] text-text-muted truncate mt-0.5">{opt.desc}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <div className="flex items-center justify-between pt-4 border-t border-border/60">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
@@ -829,95 +838,82 @@ export default function RegisterPage() {
                   onClick={() => setStep(3)}
                   className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-black font-bold text-xs sm:text-sm hover:bg-neutral-200 transition-all shadow-md active:scale-95"
                 >
-                  <span>Към Хранителните Предпочитания</span>
+                  <span>Продължи към Хранене & Настройки</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* STEP 3: Food Preferences & Avoided Ingredients Search */}
-          {step === 3 && (
-            <div className="p-6 sm:p-8 rounded-3xl bg-surface-1 border border-border space-y-6 shadow-xl">
-              {/* Diet Style */}
-              <div className="space-y-3">
+          {/* STEP 3: Dietary Preferences, Avoided Ingredients & Activation */}
+          {!loading && step === 3 && (
+            <div className="p-6 sm:p-8 rounded-3xl bg-surface-1 border border-border space-y-8 shadow-xl">
+              {/* Dietary Style */}
+              <div className="space-y-4">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Utensils className="w-4 h-4 text-orange-400" />
-                  Предпочитан Стил на Хранене
+                  <Utensils className="w-4 h-4 text-emerald-400" />
+                  <span>Предпочитан Хранителен Стил</span>
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[
-                    { id: 'BALANCED', label: 'Балансирано хранене', desc: 'Разнообразни чисти източници на протеин, сложни въглехидрати и полезни мазнини.' },
-                    { id: 'MEDITERRANEAN', label: 'Средиземноморска диета', desc: 'Зехтин, риба, свежи салати, авокадо и семена.' },
-                    { id: 'HIGH_PROTEIN_LOW_CARB', label: 'Висок Протеин / Нисък Карб', desc: 'Оптимално за бързо изчистване и висока ситост.' },
-                    { id: 'PESCATARIAN', label: 'Пескетарианство', desc: 'Риба, морски дарове, яйца, млечни и растителни храни.' },
-                    { id: 'VEGETARIAN', label: 'Вегетарианство', desc: 'Млечни продукти, скир, яйца, варива, ядки и овес.' },
-                    { id: 'BODYBUILDING_PREP', label: 'Бодибилдинг Класика', desc: 'Стриктен пилешко-оризов режим с овесени ядки и яйчен белтък.' },
-                  ].map((style) => (
-                    <button
-                      key={style.id}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, foodPreferences: style.id })}
-                      className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all ${
-                        formData.foodPreferences === style.id
-                          ? 'bg-orange-500/20 border-orange-500 text-white font-semibold'
-                          : 'bg-surface-2 hover:bg-surface-3 border-border text-neutral-300'
-                      }`}
-                    >
-                      <span className="text-xs font-bold">{style.label}</span>
-                      <p className="text-[11px] text-text-muted mt-1">{style.desc}</p>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {dietStyles.map((style) => {
+                    const isSelected = formData.foodPreferences === style.id;
+                    return (
+                      <button
+                        key={style.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, foodPreferences: style.id })}
+                        className={`p-4 rounded-2xl border text-left transition-all ${
+                          isSelected
+                            ? 'bg-emerald-500/15 border-emerald-500 text-white shadow-md ring-1 ring-emerald-500'
+                            : 'bg-surface-2 hover:bg-surface-3 border-border text-text-muted hover:text-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className={`text-xs font-bold ${isSelected ? 'text-emerald-400' : 'text-white'}`}>
+                            {style.title}
+                          </span>
+                          {isSelected && <Check className="w-4 h-4 text-emerald-400" />}
+                        </div>
+                        <p className="text-[11px] text-text-muted leading-relaxed">
+                          {style.desc}
+                        </p>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Search & Avoid Ingredients */}
+              {/* Avoided Ingredients with Separate Yogurt & Fresh Milk */}
               <div className="space-y-4 pt-4 border-t border-border/60">
-                <div>
+                <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Apple className="w-4 h-4 text-emerald-400" />
-                    Изключване на нежелани храни / алергени
+                    <X className="w-4 h-4 text-red-400" />
+                    <span>Храни и Съставки, които НЕ желаете да присъстват</span>
                   </h3>
-                  <p className="text-xs text-text-muted mt-0.5">
-                    Потърсете и маркирайте храни, меса, зеленчуци или подправки, които искате да избегнете в менюто си.
-                  </p>
+                  {formData.avoidedIngredients.length > 0 && (
+                    <span className="text-xs text-red-400 font-mono font-bold">
+                      {formData.avoidedIngredients.length} изключени
+                    </span>
+                  )}
                 </div>
+                <p className="text-xs text-text-muted">
+                  Кликнете върху съставка или я потърсете, за да бъде напълно премахната от вашия 7-дневен хранителен план.
+                </p>
 
-                {/* Search Bar */}
+                {/* Search Input */}
                 <div className="relative">
-                  <Search className="w-4 h-4 text-text-muted absolute left-3.5 top-3.5" />
+                  <Search className="w-4 h-4 text-text-muted absolute left-3.5 top-3" />
                   <input
                     type="text"
-                    placeholder="Търси пилешко, свинско, фъстъци, лактоза, броколи..."
+                    placeholder="Търси храна (напр. свинско, кисело мляко, прясно мляко, глутен, яйца...)"
                     value={ingredientSearch}
                     onChange={(e) => setIngredientSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-border text-white text-xs focus:outline-none focus:border-blue-500 placeholder:text-text-muted"
+                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-surface-2 border border-border text-white text-xs focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
-                {/* Avoided Pills Selected */}
-                {formData.avoidedIngredients.length > 0 && (
-                  <div className="flex flex-wrap gap-2 p-3 rounded-2xl bg-red-500/10 border border-red-500/20">
-                    <span className="text-[11px] font-bold text-red-400 self-center">Изключени:</span>
-                    {formData.avoidedIngredients.map((ingId) => {
-                      const ingObj = SEARCHABLE_INGREDIENTS.find((i) => i.id === ingId);
-                      return (
-                        <button
-                          key={ingId}
-                          type="button"
-                          onClick={() => toggleAvoidedIngredient(ingId)}
-                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/20 text-red-300 text-xs font-medium hover:bg-red-500/30 transition-colors"
-                        >
-                          <span>{ingObj?.nameBg || ingId}</span>
-                          <X className="w-3 h-3" />
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Filtered Search Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1">
+                {/* Ingredient Chips Grid */}
+                <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto p-1">
                   {filteredSearchIngredients.map((ing) => {
                     const isAvoided = formData.avoidedIngredients.includes(ing.id);
                     return (
@@ -925,7 +921,7 @@ export default function RegisterPage() {
                         key={ing.id}
                         type="button"
                         onClick={() => toggleAvoidedIngredient(ing.id)}
-                        className={`p-2.5 rounded-xl text-left border text-xs flex items-center justify-between transition-all ${
+                        className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition-all border ${
                           isAvoided
                             ? 'bg-red-500/20 border-red-500 text-red-300 font-bold'
                             : 'bg-surface-2 hover:bg-surface-3 border-border text-neutral-300'
@@ -965,198 +961,16 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-4">
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-surface-2 hover:bg-surface-3 text-xs font-semibold text-text-muted hover:text-white"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Назад
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSynthesizeAndAdvance}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm transition-all shadow-lg active:scale-95"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Синтезирай Програма с AI</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: Review & Finalize Program */}
-          {step === 4 && generatedResult && (
-            <div className="space-y-6">
-              {/* AI Synthesis Summary Card */}
-              <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-950/40 via-surface-1 to-surface-1 border border-blue-500/40 space-y-4 shadow-xl">
-                <div className="flex items-center gap-2 text-sm font-bold text-blue-400">
-                  <Brain className="w-5 h-5" />
-                  <span>AI Анализ & Персонализирана Стратегия</span>
-                </div>
-                <div className="text-xs text-neutral-200 leading-relaxed whitespace-pre-line">
-                  {generatedResult.aiSynthesisSummary}
-                </div>
-
-                {/* Target Macros Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border/40">
-                  <div className="p-3 rounded-xl bg-surface-2 text-center font-mono">
-                    <span className="text-[10px] text-text-muted uppercase block">Калории</span>
-                    <span className="text-lg font-bold text-orange-400">{generatedResult.dailyCaloriesTarget} ккал</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-surface-2 text-center font-mono">
-                    <span className="text-[10px] text-text-muted uppercase block">Протеин</span>
-                    <span className="text-lg font-bold text-blue-400">{generatedResult.proteinTarget} г</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-surface-2 text-center font-mono">
-                    <span className="text-[10px] text-text-muted uppercase block">Въглехидрати</span>
-                    <span className="text-lg font-bold text-amber-400">{generatedResult.carbsTarget} г</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-surface-2 text-center font-mono">
-                    <span className="text-[10px] text-text-muted uppercase block">Мазнини</span>
-                    <span className="text-lg font-bold text-emerald-400">{generatedResult.fatsTarget} г</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* View Selector (Workouts / 7-Day Meals) */}
-              <div className="flex bg-surface-2 p-1 rounded-2xl border border-border">
-                <button
-                  onClick={() => setActiveBlueprintTab('MEALS')}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-                    activeBlueprintTab === 'MEALS' ? 'bg-white text-black shadow-md' : 'text-text-muted hover:text-white'
-                  }`}
-                >
-                  7-дневен Хранителен План (с алтернативи)
-                </button>
-                <button
-                  onClick={() => setActiveBlueprintTab('WORKOUT')}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-                    activeBlueprintTab === 'WORKOUT' ? 'bg-white text-black shadow-md' : 'text-text-muted hover:text-white'
-                  }`}
-                >
-                  Тренировъчни Шаблони ({generatedResult.templates.length} Дни)
-                </button>
-              </div>
-
-              {/* TAB 1: 7-DAY MEAL PLAN */}
-              {activeBlueprintTab === 'MEALS' && (
-                <div className="p-6 rounded-3xl bg-surface-1 border border-border space-y-5">
-                  <div className="grid grid-cols-7 gap-1.5 border-b border-border/50 pb-3">
-                    {generatedResult.sevenDayMealPlan.days.map((d, dIdx) => (
-                      <button
-                        key={d.dayIndex}
-                        onClick={() => setSelectedMealDayIndex(dIdx)}
-                        className={`p-2 rounded-xl flex flex-col items-center justify-center text-xs transition-all ${
-                          selectedMealDayIndex === dIdx
-                            ? 'bg-blue-600 text-white font-bold'
-                            : 'bg-surface-2 text-text-muted hover:text-white'
-                        }`}
-                      >
-                        <span className="text-[10px] font-mono uppercase">{['Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед'][dIdx]}</span>
-                        <span className="text-[11px]">{d.totalCalories}</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {generatedResult.sevenDayMealPlan.days[selectedMealDayIndex].mealSlots.map((slot) => {
-                      const selectedOptIdx = selectedSlotOptionIndex[slot.slotId] || 0;
-                      const options = [slot.recommendedMeal, slot.alternative1, slot.alternative2].filter(Boolean) as MealOption[];
-                      const currentMeal = options[selectedOptIdx] || slot.recommendedMeal;
-
-                      return (
-                        <div key={slot.slotId} className="p-4 rounded-2xl bg-surface-2 border border-border space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-white">{slot.slotNameBg || slot.slotName}</span>
-                            <div className="flex gap-1 bg-surface-3 p-0.5 rounded-lg">
-                              {options.map((_, optIdx) => (
-                                <button
-                                  key={optIdx}
-                                  onClick={() => setSelectedSlotOptionIndex((prev) => ({ ...prev, [slot.slotId]: optIdx }))}
-                                  className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                                    selectedOptIdx === optIdx ? 'bg-white text-black' : 'text-text-muted'
-                                  }`}
-                                >
-                                  {optIdx === 0 ? 'Основно' : `Алт ${optIdx}`}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={currentMeal.photoUrl}
-                              alt={currentMeal.nameBg || currentMeal.name}
-                              className="w-14 h-14 rounded-xl object-cover border border-border flex-shrink-0"
-                            />
-                            <div>
-                              <h4 className="text-xs font-bold text-white line-clamp-1">{currentMeal.nameBg || currentMeal.name}</h4>
-                              <p className="text-[11px] font-mono text-orange-400 mt-0.5">
-                                {currentMeal.calories} ккал • P: {currentMeal.protein}г | C: {currentMeal.carbs}г | F: {currentMeal.fats}г
-                              </p>
-                            </div>
-                          </div>
-
-                          <button
-                            onClick={() => setSelectedMealForModal(currentMeal)}
-                            className="w-full py-1.5 rounded-xl bg-surface-3 text-[11px] font-medium text-white flex items-center justify-center gap-1 hover:bg-white/10"
-                          >
-                            <Eye className="w-3.5 h-3.5 text-blue-400" />
-                            <span>Виж точните съставки ({currentMeal.ingredients?.length || 0})</span>
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 2: WORKOUT TEMPLATES */}
-              {activeBlueprintTab === 'WORKOUT' && (
-                <div className="space-y-4">
-                  {generatedResult.templates.map((tmpl, tIdx) => (
-                    <div key={tIdx} className="p-6 rounded-3xl bg-surface-1 border border-border space-y-3">
-                      <div className="flex items-center justify-between border-b border-border/40 pb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">
-                            {tmpl.category}
-                          </span>
-                          <span className="text-xs font-bold text-white">{tmpl.title}</span>
-                        </div>
-                        <span className="text-xs font-mono text-text-muted">
-                          ~{tmpl.estimatedDurationMinutes} мин времетраене
-                        </span>
-                      </div>
-
-                      <p className="text-xs text-text-muted">{tmpl.description}</p>
-
-                      <div className="space-y-2 pt-2">
-                        {tmpl.exercises.map((ex, eIdx) => (
-                          <div key={eIdx} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-2 text-xs">
-                            <span className="font-semibold text-white">{ex.exerciseId}</span>
-                            <span className="font-mono text-text-muted">
-                              {ex.targetSets} серии × {ex.repRange} повт. | Стартово: <strong className="text-blue-400">{ex.startingWeightKg} кг</strong>
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
               {/* Notification & Schedule Setup */}
-              <div className="p-6 rounded-3xl bg-surface-1 border border-blue-500/30 space-y-4 shadow-xl">
+              <div className="p-5 rounded-2xl bg-surface-2/70 border border-blue-500/30 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <div className="flex items-center gap-2 text-sm font-bold text-white">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-white">
                       <Clock className="w-4 h-4 text-blue-400" />
                       <span>Имейл известяване "Време е за тренировка днес"</span>
                     </div>
-                    <p className="text-xs text-text-muted">
-                      Системата ще изпраща мотивиращ имейл точно в този час само в дните за тренировка!
+                    <p className="text-[11px] text-text-muted">
+                      Системата ще изпраща мотивиращ имейл точно в този час в дните за тренировка.
                     </p>
                   </div>
                   <input
@@ -1168,25 +982,25 @@ export default function RegisterPage() {
                 </div>
 
                 {formData.emailNotificationsEnabled && (
-                  <div className="pt-3 border-t border-border/40 max-w-xs">
-                    <label className="block text-[11px] font-semibold text-text-muted mb-1.5">
+                  <div className="pt-2 border-t border-border/40 max-w-xs">
+                    <label className="block text-[11px] font-semibold text-text-muted mb-1">
                       Приблизителен час на тренировката:
                     </label>
                     <input
                       type="time"
                       value={formData.preferredTrainingHour}
                       onChange={(e) => setFormData({ ...formData, preferredTrainingHour: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl bg-surface-2 border border-border text-white text-xs font-mono font-bold"
+                      className="w-full px-3.5 py-2 rounded-xl bg-surface-3 border border-border text-white text-xs font-mono font-bold"
                     />
                   </div>
                 )}
               </div>
 
-              {/* Final Confirm Button */}
-              <div className="flex items-center justify-between pt-4">
+              {/* Navigation & Submit directly into Dashboard */}
+              <div className="flex items-center justify-between pt-4 border-t border-border/60">
                 <button
                   type="button"
-                  onClick={() => setStep(3)}
+                  onClick={() => setStep(2)}
                   className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-surface-2 hover:bg-surface-3 text-xs font-semibold text-text-muted hover:text-white"
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -1194,30 +1008,17 @@ export default function RegisterPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={handleFinalizeRegistration}
                   disabled={loading}
-                  className="flex items-center gap-2 px-8 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-sm transition-all shadow-xl shadow-emerald-500/20 active:scale-95"
+                  onClick={handleFinalizeAndEnterDashboard}
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 hover:opacity-90 text-white font-bold text-xs sm:text-sm transition-all shadow-xl active:scale-95 disabled:opacity-50"
                 >
-                  <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
-                  <span>Потвърди и Активирай Програмата</span>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Генерирай Програма & Влез в Таблото</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
           )}
-
-          {/* Exercise Video Guide Modal */}
-          <ExerciseVideoModal
-            exercise={selectedExerciseForVideo}
-            isOpen={!!selectedExerciseForVideo}
-            onClose={() => setSelectedExerciseForVideo(null)}
-          />
-
-          {/* Meal Ingredients Modal */}
-          <MealIngredientsModal
-            meal={selectedMealForModal}
-            isOpen={!!selectedMealForModal}
-            onClose={() => setSelectedMealForModal(null)}
-          />
         </div>
       )}
     </div>
