@@ -2,33 +2,14 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Clearing existing data...');
+  console.log('Clearing existing data (exercises only)...');
   await prisma.loggedSet.deleteMany();
   await prisma.workoutLog.deleteMany();
   await prisma.templateExercise.deleteMany();
   await prisma.workoutTemplate.deleteMany();
   await prisma.exercise.deleteMany();
-  await prisma.nutritionLog.deleteMany();
-  await prisma.checkin.deleteMany();
-  await prisma.user.deleteMany();
-
-  console.log('Seeding demo user...');
-  const user = await prisma.user.create({
-    data: {
-      id: 'demo-client-1',
-      name: 'Alex Mitovski',
-      email: 'alex@mitovski.co',
-      role: 'CLIENT',
-      currentWeight: 79.2,
-      targetWeight: 76.0,
-      heightCm: 182,
-      dailyCaloriesTarget: 2500,
-      proteinTarget: 185,
-      carbsTarget: 260,
-      fatsTarget: 65,
-      waterTargetMl: 3500,
-    },
-  });
+  // NOTE: Do NOT delete users or nutrition/checkin logs here.
+  // Users are created via the /register page with real registrant data.
 
   console.log('Seeding exercise database with Muscle & Strength video guides...');
   const exercisesData = [
@@ -299,46 +280,6 @@ async function main() {
         ],
       },
     },
-  });
-
-  console.log('Seeding recent checkin and nutrition history...');
-  const today = new Date().toISOString().split('T')[0];
-  const dates = ['2026-08-10', '2026-08-17', '2026-08-24', '2026-08-31', '2026-09-06'];
-  const weights = [81.5, 80.8, 80.2, 79.7, 79.2];
-
-  for (let i = 0; i < dates.length; i++) {
-    const aiFeedback = i === 0
-      ? '🎯 **Initial Check-in Baseline**: Benchmark registered at 81.5 kg (Target: 75.0 kg). All future adjustments will compare directly to this baseline.'
-      : `🎯 **Progression Rate**: Superb weekly trend. You dropped **${(weights[i-1] - weights[i]).toFixed(1)} kg** this week, which is in the sweet spot for pure adipose loss while preserving lean mass.\n\n📏 **Circumference**: Waist tightened by **0.8 cm**, confirming fat mobilization around the core regardless of scale noise.\n\n🧠 **Biofeedback & Recovery**: High energy (4/5) and low stress (2/5) indicate optimal hormonal and carbohydrate recovery.\n\n💡 **Coach Action Step**: Keep current daily nutrition targets locked in, hit your lifting progressive overload targets, and maintain daily step consistency.`;
-
-    await prisma.checkin.create({
-      data: {
-        userId: user.id,
-        date: dates[i],
-        weightKg: weights[i],
-        waistCm: 84 - (i * 0.8),
-        chestCm: 106 + (i * 0.2),
-        armsCm: 39 + (i * 0.1),
-        thighsCm: 60 - (i * 0.2),
-        bodyFatPct: 15.5 - (i * 0.4),
-        energyRating: i === 2 ? 3 : 4,
-        stressRating: i === 3 ? 3 : 2,
-        sleepRating: 4,
-        hungerRating: 3,
-        digestionRating: 4,
-        aiFeedback,
-        notes: i === 4 ? 'Energy levels are high, strength maintained on pressing movements.' : 'Steady weekly progression.',
-      },
-    });
-  }
-
-  // Seed sample today meals
-  await prisma.nutritionLog.createMany({
-    data: [
-      { userId: user.id, date: today, mealType: 'BREAKFAST', foodName: 'Oatmeal with Whey Protein & Blueberries', calories: 540, protein: 42, carbs: 68, fats: 10 },
-      { userId: user.id, date: today, mealType: 'LUNCH', foodName: 'Grilled Chicken Breast, Basmati Rice & Broccoli', calories: 680, protein: 55, carbs: 80, fats: 14 },
-      { userId: user.id, date: today, mealType: 'SNACKS', foodName: 'Greek Yogurt 0% with Almonds & Honey', calories: 310, protein: 26, carbs: 24, fats: 11 },
-    ],
   });
 
   console.log('Seeding completed successfully!');

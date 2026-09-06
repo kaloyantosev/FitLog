@@ -44,21 +44,21 @@ export default function RegisterPage() {
     name: '',
     email: '',
     password: '',
-    age: '26',
+    age: '',
     gender: 'MALE' as 'MALE' | 'FEMALE' | 'OTHER',
-    heightCm: '180',
-    currentWeight: '80.0',
-    targetWeight: '75.0',
-    trainingDaysPerWeek: 4, // 1 to 5
+    heightCm: '',
+    currentWeight: '',
+    targetWeight: '',
+    trainingDaysPerWeek: 4,
     preferredTrainingHour: '18:00',
     emailNotificationsEnabled: true,
-    bodyCompositionScale: 4, // 1 to 6
-    primaryGoalScale: 3,     // 1 to 6
-    activityLevelScale: 3,   // 1 to 6
-    experienceScale: 3,      // 1 to 6
-    stressScale: 3,          // 1 to 6
-    sleepScale: 4,           // 1 to 6
-    dietDisciplineScale: 4,  // 1 to 6
+    bodyCompositionScale: 3,
+    primaryGoalScale: 3,
+    activityLevelScale: 3,
+    experienceScale: 3,
+    stressScale: 3,
+    sleepScale: 3,
+    dietDisciplineScale: 3,
     priorityMuscleGroups: ['BALANCED'] as string[],
     avoidedMuscleAreas: [] as string[],
     foodPreferences: 'BALANCED',

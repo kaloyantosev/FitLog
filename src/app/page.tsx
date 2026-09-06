@@ -39,12 +39,19 @@ export default function DashboardPage() {
           fetch('/api/workouts').then((r) => r.json()),
         ]);
 
-        if (userRes && !userRes.error) setUser(userRes);
+        if (userRes && !userRes.error) {
+          setUser(userRes);
+        } else {
+          // No user in DB yet — redirect to registration
+          router.replace('/register');
+          return;
+        }
         if (Array.isArray(tmplRes)) setTemplates(tmplRes);
         if (Array.isArray(nutrRes)) setNutritionLogs(nutrRes);
         if (Array.isArray(workRes)) setRecentWorkouts(workRes.slice(0, 3));
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
+        router.replace('/register');
       } finally {
         setLoading(false);
       }

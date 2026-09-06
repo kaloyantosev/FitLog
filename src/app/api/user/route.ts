@@ -3,24 +3,9 @@ import prisma from '@/lib/prisma';
 
 export async function GET() {
   try {
-    let user = await prisma.user.findFirst();
+    const user = await prisma.user.findFirst();
     if (!user) {
-      user = await prisma.user.create({
-        data: {
-          id: 'demo-client-1',
-          name: 'Калоян Тосев',
-          email: 'kaloyan.tosev@gmail.com',
-          role: 'CLIENT',
-          currentWeight: 79.2,
-          targetWeight: 76.0,
-          heightCm: 182,
-          dailyCaloriesTarget: 2500,
-          proteinTarget: 185,
-          carbsTarget: 260,
-          fatsTarget: 65,
-          waterTargetMl: 3500,
-        },
-      });
+      return NextResponse.json({ error: 'No user found' }, { status: 404 });
     }
     return NextResponse.json(user);
   } catch (error) {
