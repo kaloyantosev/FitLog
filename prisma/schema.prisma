@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                  String            @id @default(uuid())
+  email               String            @unique
+  name                String
+  password            String?           @default("password123")
+  role                String            @default("CLIENT") // "CLIENT" or "COACH"
+  age                 Int?              @default(25)
+  gender              String?           @default("MALE")   // "MALE", "FEMALE", "OTHER"
+  currentWeight       Float             @default(78.5)
+  targetWeight        Float             @default(75.0)
+  heightCm            Float             @default(180.0)
+  trainingDaysPerWeek       Int?              @default(4)        // 1 to 5
+  preferredTrainingHour     String?           @default("18:00")  // e.g. "07:00", "18:00"
+  emailNotificationsEnabled Boolean           @default(true)
+  questionnaireData         String?           // JSON string of all 1-6 scale answers
+  foodPreferences           String?           @default("BALANCED") // BALANCED, MEDITERRANEAN, HIGH_PROTEIN_LOW_CARB, PESCATARIAN, VEGETARIAN, BODYBUILDING_PREP
+  avoidedIngredients        String?           @default("[]")       // JSON array of excluded ingredient IDs/names
+  mealsPerDay               Int?              @default(4)          // 2 to 6
+  mealTiming                String?           @default("STANDARD") // MORNING_HEAVY, STANDARD, EVENING_HEAVY, INTERMITTENT_FASTING
+  snackingHabits            String?           @default("AFTERNOON_FUEL") // NONE, MID_MORNING, AFTERNOON_FUEL, LATE_NIGHT, CASUAL
+  mealPlanData              String?           // JSON string of the synthesized 7-day meal split
+  dailyCaloriesTarget       Int               @default(2400)
+  proteinTarget       Int               @default(180)
+  carbsTarget         Int               @default(240)
+  fatsTarget          Int               @default(65)
+  waterTargetMl       Int               @default(3500)
+  workoutLogs         WorkoutLog[]
+  nutritionLogs       NutritionLog[]
+  checkins            Checkin[]
+  templates           WorkoutTemplate[]
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
+
+model Exercise {
+  id                    String             @id @default(uuid())
+  name                  String
+  category              String             // CHEST, BACK, LEGS, SHOULDERS, ARMS, CORE, CARDIO
+  equipment             String             // BARBELL, DUMBBELL, CABLE, MACHINE, BODYWEIGHT
+  instructions          String?
+  videoUrl              String?            // YouTube / Video embed URL from Muscle & Strength
+  thumbnailUrl          String?
+  setupInstructions     String?
+  executionInstructions String?
+  targetMuscles         String?
+  commonMistakes        String?
+  templateExercises     TemplateExercise[]
+  loggedSets            LoggedSet[]
+}
+
+model WorkoutTemplate {
+  id                       String             @id @default(uuid())
+  userId                   String?
+  title                    String
+  description              String?
+  category                 String             // PUSH, PULL, LEGS, UPPER, LOWER, FULL_BODY
+  isDefault                Boolean            @default(false)
+  estimatedDurationMinutes Int?               @default(50)
+  exercises                TemplateExercise[]
+  workoutLogs              WorkoutLog[]
+  user                     User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+}
+
+model TemplateExercise {
+  id               String          @id @default(uuid())
+  templateId       String
+  exerciseId       String
+  order            Int             @default(0)
+  targetSets       Int             @default(3)
+  repRange         String          @default("8-12")
+  targetRpe        Float?          @default(8.0)
+  restSeconds      Int             @default(90)
+  startingWeightKg Float?          @default(0)
+  notes            String?
+  template         WorkoutTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  exercise         Exercise        @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+}
+
+model WorkoutLog {
+  id              String      @id @default(uuid())
+  userId          String
+  templateId      String?
+  title           String
+  startedAt       DateTime    @default(now())
+  completedAt     DateTime?
+  durationMinutes Int?        @default(0)
+  totalVolumeKg   Float?      @default(0)
+  notes           String?
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template        WorkoutTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  loggedSets      LoggedSet[]
+}
+
+model LoggedSet {
+  id           String     @id @default(uuid())
+  workoutLogId String
+  exerciseId   String
+  setNumber    Int
+  weightKg     Float      @default(0)
+  reps         Int        @default(0)
+  rpe          Float?
+  isCompleted  Boolean    @default(false)
+  workoutLog   WorkoutLog @relation(fields: [workoutLogId], references: [id], onDelete: Cascade)
+  exercise     Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+}
+
+model NutritionLog {
+  id        String   @id @default(uuid())
+  userId    String
+  date      String   // YYYY-MM-DD
+  mealType  String   // BREAKFAST, LUNCH, DINNER, SNACKS
+  foodName  String
+  calories  Int
+  protein   Float    @default(0)
+  carbs     Float    @default(0)
+  fats      Float    @default(0)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Checkin {
+  id              String   @id @default(uuid())
+  userId          String
+  date            String   // YYYY-MM-DD
+  weightKg        Float
+  chestCm         Float?
+  waistCm         Float?
+  hipsCm          Float?
+  armsCm          Float?
+  thighsCm        Float?
+  bodyFatPct      Float?
+  energyRating    Int?     @default(4) // 1-5 Scale
+  stressRating    Int?     @default(2) // 1-5 Scale
+  sleepRating     Int?     @default(4) // 1-5 Scale
+  hungerRating    Int?     @default(3) // 1-5 Scale
+  digestionRating Int?     @default(4) // 1-5 Scale
+  aiFeedback      String?  // Intelligent Coach AI assessment
+  notes           String?
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
