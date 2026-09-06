@@ -178,21 +178,25 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Navigation bar */}
-        <div className="md:hidden flex items-center justify-around border-t border-border bg-surface-1 py-2 px-1">
+        {/* Mobile Navigation bar — fixed at bottom */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-border bg-[#090a0f]/95 backdrop-blur-md py-2 px-1 safe-area-pb">
           {navLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
+            const shortLabel = link.label
+              .replace('Хранене & Макроси', 'Хранене')
+              .replace('Прогрес & Чек-ин', 'Прогрес')
+              .replace('Треньорско студио', 'Треньор');
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-[11px] font-medium transition-all ${
+                className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-lg text-[10px] font-medium transition-all min-w-0 ${
                   isActive ? 'text-blue-400 font-bold' : 'text-text-muted hover:text-white'
                 }`}
               >
-                <Icon className="w-4 h-4" />
-                <span>{link.label}</span>
+                <Icon className={`w-5 h-5 ${isActive ? 'text-blue-400' : 'text-text-muted'}`} />
+                <span className="truncate max-w-[52px] text-center">{shortLabel}</span>
               </Link>
             );
           })}

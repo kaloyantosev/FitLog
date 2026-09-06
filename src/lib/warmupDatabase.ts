@@ -16,7 +16,7 @@ export const WARMUP_EXERCISES_DATABASE: WarmupExercise[] = [
     targetAreaBg: 'Тазобедрени стави, торакален гръбнак, сгъвачи на бедрото',
     durationOrRepsBg: '5-6 повторения на страна',
     instructionsBg: 'Заемете позиция за дълбок напад. Поставете лакътя от вътрешната страна на предното стъпало, след което разтворете гръдния кош и протегнете ръката нагоре към тавана.',
-    videoUrl: 'https://www.youtube.com/embed/PmsO0yNqWc4',
+    videoUrl: 'https://www.youtube.com/embed/Foba4BKMFPI',
   },
   {
     id: 'wu-2',
@@ -25,7 +25,7 @@ export const WARMUP_EXERCISES_DATABASE: WarmupExercise[] = [
     targetAreaBg: 'Ротаторен маншон, задно рамо, ромбоиди',
     durationOrRepsBg: '15-20 контролирани повторения',
     instructionsBg: 'Хванете ластика на ширината на раменете с прави ръце. Издърпайте го към гърдите, като събирате лопатките плътно една към друга. Задръжте за 1 секунда.',
-    videoUrl: 'https://www.youtube.com/embed/pciT1z488lE',
+    videoUrl: 'https://www.youtube.com/embed/aVFHFnMkqSo',
   },
   {
     id: 'wu-3',
@@ -34,7 +34,7 @@ export const WARMUP_EXERCISES_DATABASE: WarmupExercise[] = [
     targetAreaBg: 'Гръден кош, средна и горна част на гърба',
     durationOrRepsBg: '10 плавни вдишвания и издишвания',
     instructionsBg: 'На четири крака редувайте извиване на гърба нагоре (издишване) с плавно отпускане надолу и повдигане на погледа (вдишване) за декомпресия на гръбнака.',
-    videoUrl: 'https://www.youtube.com/embed/w_bvd_d2pZ8',
+    videoUrl: 'https://www.youtube.com/embed/kqnua4rHVVA',
   },
   {
     id: 'wu-4',
@@ -43,7 +43,7 @@ export const WARMUP_EXERCISES_DATABASE: WarmupExercise[] = [
     targetAreaBg: 'Квадрицепси, глезени, тазово дъно',
     durationOrRepsBg: '10-12 повторения с 2 сек пауза долу',
     instructionsBg: 'Клекнете бавно с отворени колена навън. В най-ниската точка задръжте за 2 секунди, натискайки леко коленете с лакти за максимална мобилност на таза и глезените.',
-    videoUrl: 'https://www.youtube.com/embed/aclHkVaku9U',
+    videoUrl: 'https://www.youtube.com/embed/U3HlEF_E9fo',
   },
   {
     id: 'wu-5',
@@ -52,7 +52,7 @@ export const WARMUP_EXERCISES_DATABASE: WarmupExercise[] = [
     targetAreaBg: 'Седалищни мускули (Gluteus Maximus), задно бедро',
     durationOrRepsBg: '12 повторения с 2 сек контракция',
     instructionsBg: 'Легнете по гръб със свити колена и стъпала на пода. Повдигнете таза нагоре чрез стягане на седалището, без да извивате излишно кръста.',
-    videoUrl: 'https://www.youtube.com/embed/OUgsJ8-Vigk',
+    videoUrl: 'https://www.youtube.com/embed/wPM8icPu6H8',
   },
   {
     id: 'wu-6',
@@ -61,7 +61,7 @@ export const WARMUP_EXERCISES_DATABASE: WarmupExercise[] = [
     targetAreaBg: 'Serratus anterior, долна част на трапец, лопатки',
     durationOrRepsBg: '12-15 повторения',
     instructionsBg: 'Опрете гърба, лактите и китките плътно до стената. Плъзгайте ръцете плавно нагоре и надолу, поддържайки постоянен контакт със стената.',
-    videoUrl: 'https://www.youtube.com/embed/p1u42N4f96c',
+    videoUrl: 'https://www.youtube.com/embed/jhEROm0MMBI',
   },
 ];
 

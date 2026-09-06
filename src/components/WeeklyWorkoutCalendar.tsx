@@ -119,7 +119,7 @@ export default function WeeklyWorkoutCalendar({
   return (
     <div className="space-y-6">
       {/* Top Header & Frequency Controller */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-3xl bg-surface-1 border border-border">
+      <div className="flex flex-col gap-2 p-5 rounded-3xl bg-surface-1 border border-border">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 uppercase tracking-wider">
@@ -131,28 +131,11 @@ export default function WeeklyWorkoutCalendar({
             График на тренировките за седмицата
           </h2>
           <p className="text-xs text-text-muted mt-0.5">
-            Дните са разпределени автоматично спрямо вашите {activeDays} тренировъчни дни от въпросника.
+            Дните са разпределени автоматично спрямо вашия тренировъчен план.
           </p>
         </div>
-
-        {/* 1-5 Days Frequency Switcher */}
-        <div className="flex items-center gap-1.5 bg-surface-2 p-1 rounded-2xl border border-border self-start sm:self-auto">
-          <span className="text-[11px] font-medium text-text-muted px-2 hidden md:inline">Честота:</span>
-          {[1, 2, 3, 4, 5].map((d) => (
-            <button
-              key={d}
-              onClick={() => handleDayCountChange(d)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                activeDays === d
-                  ? 'bg-blue-500 text-black shadow-md scale-105'
-                  : 'text-text-muted hover:text-white hover:bg-surface-3'
-              }`}
-            >
-              {d} {d === 1 ? 'ден' : 'дни'}
-            </button>
-          ))}
-        </div>
       </div>
+
 
       {/* 7-Days Grid Display */}
       <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
