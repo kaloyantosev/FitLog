@@ -316,19 +316,7 @@ export default function NutritionPage() {
     return generateDetailedMealOptionsBreakdown(mealPlan);
   }, [mealPlan]);
 
-  // Initialize selected grocery meals with all meals by default
-  useEffect(() => {
-    if (detailedMealOptions.length > 0 && Object.keys(selectedGroceryMealIds).length === 0) {
-      const initial: Record<string, boolean> = {};
-      detailedMealOptions.forEach((cat) => {
-        cat.meals.forEach((m) => {
-          initial[m.id] = true;
-        });
-      });
-      setSelectedGroceryMealIds(initial);
-    }
-  }, [detailedMealOptions]);
-
+  // Start with clean grocery selection (empty) as requested
   const toggleGroceryMeal = (mealId: string) => {
     setSelectedGroceryMealIds((prev) => ({
       ...prev,

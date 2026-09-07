@@ -446,8 +446,92 @@ export function synthesizeProgram(input: QuestionnaireInput): GeneratedProgramRe
     );
   }
 
+  // 5.1 Strictly Apply Avoided Areas & Priority Specialization to Raw Templates
+  const isAvoided = (exId: string): boolean => {
+    if (resolvedAvoidedAreas.includes('DIRECT_CHEST') && ['ex-1', 'ex-2', 'ex-3'].includes(exId)) return true;
+    if (resolvedAvoidedAreas.includes('DIRECT_LEGS') && ['ex-4', 'ex-5', 'ex-6', 'ex-7'].includes(exId)) return true;
+    if (resolvedAvoidedAreas.includes('DIRECT_ARMS') && ['ex-14', 'ex-15', 'ex-16'].includes(exId)) return true;
+    if ((resolvedAvoidedAreas.includes('SHOULDERS') || resolvedAvoidedAreas.includes('DIRECT_SHOULDERS')) && ['ex-12'].includes(exId)) return true;
+    if (resolvedAvoidedAreas.includes('ELBOWS_WRISTS') && ['ex-16'].includes(exId)) return true;
+    if ((resolvedAvoidedAreas.includes('LOWER_BACK') || resolvedAvoidedAreas.includes('HEAVY_DEADLIFTS')) && ['ex-5'].includes(exId)) return true;
+    if ((resolvedAvoidedAreas.includes('KNEES') || resolvedAvoidedAreas.includes('HEAVY_SQUATS')) && ['ex-4'].includes(exId)) return true;
+    return false;
+  };
+
+  const getSafeSubstitute = (exId: string, currentExIds: string[]): string => {
+    if (['ex-1', 'ex-2', 'ex-3'].includes(exId)) return currentExIds.includes('ex-10') ? 'ex-13' : 'ex-10';
+    if (['ex-4', 'ex-5', 'ex-6', 'ex-7'].includes(exId)) return currentExIds.includes('ex-17') ? 'ex-13' : 'ex-17';
+    if (['ex-14', 'ex-15', 'ex-16'].includes(exId)) return currentExIds.includes('ex-13') ? 'ex-10' : 'ex-13';
+    if (exId === 'ex-12') return currentExIds.includes('ex-3') ? 'ex-11' : 'ex-3';
+    if (exId === 'ex-16') return 'ex-15';
+    if (exId === 'ex-5') return currentExIds.includes('ex-7') ? 'ex-17' : 'ex-7';
+    if (exId === 'ex-4') return currentExIds.includes('ex-6') ? 'ex-7' : 'ex-6';
+    return 'ex-17';
+  };
+
+  const isPriorityExercise = (exId: string): { matches: boolean; label: string } => {
+    const has = (id: string) => resolvedPriorityGroups.includes(id);
+    if ((has('CHEST_UPPER') || has('CHEST')) && exId === 'ex-2') return { matches: true, label: 'горна част на гърдите' };
+    if ((has('CHEST_MID_LOWER') || has('CHEST')) && exId === 'ex-1') return { matches: true, label: 'гръдна мускулатура' };
+    if ((has('BACK_LATS') || has('BACK')) && exId === 'ex-8') return { matches: true, label: 'ширина на гърба' };
+    if ((has('BACK_THICKNESS') || has('BACK')) && (exId === 'ex-9' || exId === 'ex-10')) return { matches: true, label: 'плътност на гърба' };
+    if ((has('SHOULDERS_SIDE') || has('SHOULDERS')) && exId === 'ex-11') return { matches: true, label: 'странично рамо' };
+    if ((has('SHOULDERS_FRONT') || has('SHOULDERS')) && exId === 'ex-12') return { matches: true, label: 'предно рамо' };
+    if ((has('SHOULDERS_REAR') || has('SHOULDERS')) && exId === 'ex-13') return { matches: true, label: 'задно рамо' };
+    if ((has('ARMS_BICEPS') || has('ARMS')) && exId === 'ex-14') return { matches: true, label: 'бицепси' };
+    if ((has('ARMS_TRICEPS') || has('ARMS')) && (exId === 'ex-15' || exId === 'ex-16')) return { matches: true, label: 'трицепси' };
+    if ((has('CORE_ABS') || has('CORE')) && exId === 'ex-17') return { matches: true, label: 'коремна стена и ядро' };
+    if ((has('LEGS_QUADS') || has('LEGS')) && (exId === 'ex-4' || exId === 'ex-6')) return { matches: true, label: 'квадрицепси' };
+    if ((has('LEGS_HAMSTRINGS') || has('LEGS')) && exId === 'ex-5') return { matches: true, label: 'задно бедро' };
+    if ((has('LEGS_GLUTES') || has('LEGS')) && exId === 'ex-6') return { matches: true, label: 'глутеус и седалище' };
+    if ((has('LEGS_CALVES') || has('LEGS')) && exId === 'ex-7') return { matches: true, label: 'прасци' };
+    return { matches: false, label: '' };
+  };
+
+  // Process raw templates with strict avoidances and priority boosts
+  const processedRawTemplates = rawTemplates.map((tmpl) => {
+    const existingIds = tmpl.exercises.map((e) => e.exerciseId);
+    let updatedExercises = tmpl.exercises.map((ex) => {
+      let finalId = ex.exerciseId;
+      if (isAvoided(finalId)) {
+        finalId = getSafeSubstitute(finalId, existingIds);
+      }
+
+      const priorityCheck = isPriorityExercise(finalId);
+      const boostedSets = priorityCheck.matches ? Math.min(5, ex.targetSets + 1) : ex.targetSets;
+      const boostedNotes = priorityCheck.matches 
+        ? `[ПРИОРИТЕТ: ${priorityCheck.label.toUpperCase()}] ${ex.notes}` 
+        : ex.notes;
+
+      return {
+        ...ex,
+        exerciseId: finalId,
+        targetSets: boostedSets,
+        notes: boostedNotes,
+      };
+    });
+
+    // If core is prioritized and not yet in this template, append hanging leg raise
+    if ((resolvedPriorityGroups.includes('CORE_ABS') || resolvedPriorityGroups.includes('CORE')) && 
+        !updatedExercises.some((e) => e.exerciseId === 'ex-17')) {
+      updatedExercises.push({
+        exerciseId: 'ex-17',
+        targetSets: 4,
+        repRange: '12-15',
+        targetRpe: 8.5,
+        restSeconds: 60,
+        notes: '[ПРИОРИТЕТ: КОРЕМНА ПРЕСА] Контролирано повдигане на крака за стегнато ядро.',
+      });
+    }
+
+    return {
+      ...tmpl,
+      exercises: updatedExercises,
+    };
+  });
+
   // Attach starting weights and estimated durations
-  const templates = rawTemplates.map((tmpl) => {
+  const templates = processedRawTemplates.map((tmpl) => {
     const exercisesWithWeights = tmpl.exercises.map((ex) => ({
       ...ex,
       startingWeightKg: calculateStartingWeight(ex.exerciseId, gender, currentWeight, experienceScale),
@@ -532,13 +616,13 @@ export function synthesizeProgram(input: QuestionnaireInput): GeneratedProgramRe
     ? resolvedAvoidedAreas.map((id) => avoidedLabels[id] || id).join(', ')
     : 'Няма ограничения';
 
-  const aiSynthesisSummary = `🧠 **AI Анализ и Персонализиран План за ${input.name}**:
-- **Физиологична цел**: ${goalTitle} (Текущо тегло: **${currentWeight} кг** ➔ Целево тегло: **${targetWeight} кг**).
-- **Специализация на мускулни групи**: Приоритетни зони: **${prioritySummaryStr}**. Ограничения/Щадене: **${avoidedSummaryStr}**.
-- **Метаболитен баланс**: Вашият прогнозен TDEE е **${Math.round(tdee)} ккал/ден**. Предписаният калориен прием е **${dailyCaloriesTarget} ккал/ден** с **${proteinTarget} г Протеин** за максимален мускулен протеинов синтез.
-- **Хранителен протокол**: Изготвихме **7-дневен детайлен хранителен режим**, адаптиран към вашите предпочитания (${input.foodPreferences || 'Балансирани цели храни'}) и изключени съставки (${input.avoidedIngredients?.length ? input.avoidedIngredients.join(', ') : 'Няма'}).
-- **Тренировъчна честота и обем**: Синтезирахме **${recommendedSplitName}** (${days} дни седмично). Към всяка сесия е добавен специализиран **загряващ протокол за мобилност с видеа**.
-- **Начални работни тежести**: Автоматично изчислени спрямо вашия пол, лично тегло и стаж.`;
+  const aiSynthesisSummary = `🧠 AI Анализ и Персонализиран План за ${input.name}:
+- Физиологична цел: ${goalTitle} (Текущо тегло: ${currentWeight} кг ➔ Целево тегло: ${targetWeight} кг).
+- Специализация на мускулни групи: Приоритетни зони: ${prioritySummaryStr}. Ограничения/Щадене: ${avoidedSummaryStr}.
+- Метаболитен баланс: Вашият прогнозен TDEE е ${Math.round(tdee)} ккал/ден. Предписаният калориен прием е ${dailyCaloriesTarget} ккал/ден с ${proteinTarget} г Протеин за максимален мускулен протеинов синтез.
+- Хранителен протокол: Изготвихме 7-дневен детайлен хранителен режим, адаптиран към вашите предпочитания (${input.foodPreferences || 'Балансирани цели храни'}) и изключени съставки (${input.avoidedIngredients?.length ? input.avoidedIngredients.join(', ') : 'Няма'}).
+- Тренировъчна честота и обем: Синтезирахме ${recommendedSplitName} (${days} дни седмично). Към всяка сесия е добавен специализиран загряващ протокол за мобилност с видеа.
+- Начални работни тежести: Автоматично изчислени спрямо вашия пол, лично тегло и стаж.`;
 
   return {
     dailyCaloriesTarget,

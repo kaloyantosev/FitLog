@@ -159,7 +159,7 @@ export default function ProgressPage() {
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-5 rounded-3xl bg-surface-1 border border-border space-y-2">
           <span className="text-xs font-medium text-text-muted">Текущо Тегло</span>
           <div className="flex items-baseline gap-2">
@@ -191,17 +191,6 @@ export default function ProgressPage() {
           </div>
           <div className="text-xs text-text-muted">
             Последен: {checkins.length > 0 ? checkins[checkins.length - 1].date : 'Няма'}
-          </div>
-        </div>
-
-        <div className="p-5 rounded-3xl bg-surface-1 border border-border space-y-2">
-          <span className="text-xs font-medium text-text-muted">AI Треньорски Статус</span>
-          <div className="flex items-center gap-2 pt-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-sm font-bold text-emerald-400">Активно Оптимизиране</span>
-          </div>
-          <div className="text-xs text-text-muted">
-            Автоматично адаптиране на работните тежести
           </div>
         </div>
       </div>

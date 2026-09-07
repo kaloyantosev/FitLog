@@ -476,7 +476,7 @@ function WorkoutsContent() {
               <div key={ex.exerciseId + exIdx} className="p-5 rounded-3xl bg-surface-1 border border-border space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/40">
                   <div className="flex items-center gap-3">
-                    {/* Equipment / Attachment thumbnail photo */}
+                    {/* Equipment / Attachment thumbnail photo & Full Equipment Badge */}
                     {(() => {
                       const exObj = exercises.find((e) => e.id === ex.exerciseId);
                       const exerciseAttachmentMap: Record<string, { url: string; label: string; desc: string }> = {
@@ -502,41 +502,44 @@ function WorkoutsContent() {
                       const fallbackEquip: Record<string, { url: string; label: string; desc: string }> = {
                         BARBELL: { url: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=160&auto=format&fit=crop&q=80', label: 'Прав лост', desc: 'Олимпийски лост' },
                         DUMBBELL: { url: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=160&auto=format&fit=crop&q=80', label: 'Дъмбели', desc: 'Чифт дъмбели' },
-                        CABLE: { url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=160&auto=format&fit=crop&q=80', label: 'Въже/Ръкохватка', desc: 'Приставка за скрипец' },
+                        CABLE: { url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=160&auto=format&fit=crop&q=80', label: 'Въже / Ръкохватка', desc: 'Приставка за скрипец' },
                         MACHINE: { url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=160&auto=format&fit=crop&q=80', label: 'Фитнес машина', desc: 'Машина с опора' },
-                        BODYWEIGHT: { url: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=160&auto=format&fit=crop&q=80', label: 'Лост / Собствено тегло', desc: 'Лост или постелка' },
+                        BODYWEIGHT: { url: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=160&auto=format&fit=crop&q=80', label: 'Лост за вис', desc: 'Лост или постелка' },
                       };
 
                       const equip = exObj?.equipment || 'BARBELL';
                       const item = exerciseAttachmentMap[ex.exerciseId] || fallbackEquip[equip] || fallbackEquip.BARBELL;
 
                       return (
-                        <div className="relative shrink-0 group/equip" title={`${item.label} • ${item.desc}`}>
-                          <img
-                            src={item.url}
-                            alt={item.label}
-                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl object-cover border border-blue-500/30 shadow-md ring-1 ring-white/10 group-hover/equip:ring-blue-500/60 transition-all"
-                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                          />
-                          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[9px] font-bold bg-[#0a0d14] text-blue-300 px-1.5 py-0.5 rounded-md border border-blue-500/40 shadow-sm leading-tight whitespace-nowrap z-10 max-w-[90px] truncate">
-                            {item.label}
+                        <>
+                          <div className="relative shrink-0 group/equip" title={`${item.label} (${item.desc})`}>
+                            <img
+                              src={item.url}
+                              alt={item.label}
+                              className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl object-cover border border-blue-500/30 shadow-md ring-1 ring-white/10 group-hover/equip:ring-blue-500/60 transition-all"
+                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                            />
                           </div>
-                        </div>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="w-5 h-5 rounded-md bg-surface-3 flex items-center justify-center text-[10px] font-bold text-text-muted font-mono shrink-0">
+                                {exIdx + 1}
+                              </span>
+                              <h3 className="text-base font-bold text-white">{ex.exerciseName}</h3>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-blue-500/15 border border-blue-500/30 text-[11px] font-bold text-blue-300">
+                                <Dumbbell className="w-3 h-3 text-blue-400 shrink-0" />
+                                <span>{item.label}</span>
+                              </span>
+                            </div>
+                            <div className="text-xs text-text-muted font-mono flex items-center gap-2 mt-1">
+                              <span>Цел: {ex.targetSets} серии × {ex.repRange} повт.</span>
+                              <span>•</span>
+                              <span className="text-blue-400 font-semibold">Почивка: {ex.restSeconds} сек</span>
+                            </div>
+                          </div>
+                        </>
                       );
                     })()}
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="w-5 h-5 rounded-md bg-surface-3 flex items-center justify-center text-[10px] font-bold text-text-muted font-mono shrink-0">
-                          {exIdx + 1}
-                        </span>
-                        <h3 className="text-base font-bold text-white">{ex.exerciseName}</h3>
-                      </div>
-                      <div className="text-xs text-text-muted font-mono flex items-center gap-2 mt-1">
-                        <span>Цел: {ex.targetSets} серии × {ex.repRange} повт.</span>
-                        <span>•</span>
-                        <span className="text-blue-400 font-semibold">Почивка: {ex.restSeconds} сек</span>
-                      </div>
-                    </div>
                   </div>
                   
                   <button

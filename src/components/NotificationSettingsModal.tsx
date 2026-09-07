@@ -33,7 +33,6 @@ export default function NotificationSettingsModal({
   const [trainingHour, setTrainingHour] = useState<string>(user?.preferredTrainingHour || '18:00');
   const [checkinDay, setCheckinDay] = useState<string>('SUNDAY');
   const [checkinHour, setCheckinHour] = useState<string>('09:00');
-  const [crmApiKey, setCrmApiKey] = useState<string>('');
 
   const [saving, setSaving] = useState(false);
   const [testingWorkout, setTestingWorkout] = useState(false);
@@ -249,24 +248,6 @@ export default function NotificationSettingsModal({
               <span>{testingCheckin ? 'Изпращане...' : 'Тествай Чек-ин имейл'}</span>
             </button>
           </div>
-        </div>
-
-        {/* Section 3: Free CRM Provider Integration */}
-        <div className="p-4 rounded-2xl bg-surface-2/40 border border-border/70 space-y-2.5">
-          <div className="flex items-center gap-2 text-xs font-bold text-neutral-300">
-            <Shield className="w-4 h-4 text-emerald-400" />
-            <span>Безплатна CRM Интеграция (Brevo / Resend / SMTP)</span>
-          </div>
-          <p className="text-[11px] text-text-muted leading-relaxed">
-            Системата разполага с вграден безплатен CRM mailer с 300 безплатни имейла на ден през Brevo API или директен SMTP. Можете да добавите персонализиран API ключ или да използвате автоматичния режим.
-          </p>
-          <input
-            type="password"
-            placeholder="Въведете Brevo / Resend API ключ (Опционално)"
-            value={crmApiKey}
-            onChange={(e) => setCrmApiKey(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl bg-surface-3 border border-border text-white text-xs font-mono placeholder:text-text-muted"
-          />
         </div>
 
         {/* Last Dispatched Preview */}
