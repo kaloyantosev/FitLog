@@ -43,8 +43,28 @@ export default function FoodPhotoScannerModal({
   const [aiAnalysisResult, setAiAnalysisResult] = useState<any | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
 
+  // Editable result fields
+  const [editableName, setEditableName] = useState('');
+  const [editableCalories, setEditableCalories] = useState<number>(0);
+  const [editableProtein, setEditableProtein] = useState<number>(0);
+  const [editableCarbs, setEditableCarbs] = useState<number>(0);
+  const [editableFats, setEditableFats] = useState<number>(0);
+
+  // User Gemini API Key & Meal Hint
+  const [geminiApiKey, setGeminiApiKey] = useState('');
+  const [foodHint, setFoodHint] = useState('');
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [keySavedMessage, setKeySavedMessage] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedKey = localStorage.getItem('fitlog_gemini_api_key') || '';
+      setGeminiApiKey(savedKey);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isOpen) {
@@ -52,8 +72,18 @@ export default function FoodPhotoScannerModal({
       setImageSrc(null);
       setAiAnalysisResult(null);
       setErrorMsg(null);
+      setFoodHint('');
     }
   }, [isOpen]);
+
+  const saveApiKey = (key: string) => {
+    setGeminiApiKey(key);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('fitlog_gemini_api_key', key.trim());
+    }
+    setKeySavedMessage(true);
+    setTimeout(() => setKeySavedMessage(false), 2500);
+  };
 
   const startCamera = async () => {
     setErrorMsg(null);
@@ -95,7 +125,7 @@ export default function FoodPhotoScannerModal({
       const base64 = canvas.toDataURL('image/jpeg', 0.85);
       setImageSrc(base64);
       stopCamera();
-      analyzeFoodImage(base64);
+      analyzeFoodImage(base64, foodHint);
     }
   };
 
@@ -108,12 +138,12 @@ export default function FoodPhotoScannerModal({
       const base64 = reader.result as string;
       setImageSrc(base64);
       stopCamera();
-      analyzeFoodImage(base64);
+      analyzeFoodImage(base64, foodHint);
     };
     reader.readAsDataURL(file);
   };
 
-  const analyzeFoodImage = async (base64: string) => {
+  const analyzeFoodImage = async (base64: string, hint?: string) => {
     setLoading(true);
     setErrorMsg(null);
     setAiAnalysisResult(null);
@@ -121,8 +151,15 @@ export default function FoodPhotoScannerModal({
     try {
       const res = await fetch('/api/ai/food-vision', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64 }),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(geminiApiKey ? { 'x-gemini-api-key': geminiApiKey } : {}),
+        },
+        body: JSON.stringify({
+          imageBase64: base64,
+          apiKey: geminiApiKey,
+          promptContext: hint || foodHint,
+        }),
       });
 
       const data = await res.json();
@@ -130,22 +167,26 @@ export default function FoodPhotoScannerModal({
         setErrorMsg(data.error || 'Неуспешен анализ на снимката на ястието.');
       } else {
         setAiAnalysisResult(data);
+        setEditableName(data.dishName || 'Сканирано ястие');
+        setEditableCalories(data.totalCalories || 0);
+        setEditableProtein(data.totalProtein || 0);
+        setEditableCarbs(data.totalCarbs || 0);
+        setEditableFats(data.totalFats || 0);
       }
     } catch (err) {
-      setErrorMsg('Мрежова грешка при стартиране на AI анализ на храната.');
+      setErrorMsg('Мрежова грешка при свързване със сървъра за анализ.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleAddMeal = () => {
-    if (!aiAnalysisResult) return;
     onMealRecognized({
-      foodName: aiAnalysisResult.dishName || 'AI Сканирано ястие',
-      calories: aiAnalysisResult.totalCalories || 0,
-      protein: aiAnalysisResult.totalProtein || 0,
-      carbs: aiAnalysisResult.totalCarbs || 0,
-      fats: aiAnalysisResult.totalFats || 0,
+      foodName: editableName || aiAnalysisResult?.dishName || 'AI Сканирано ястие',
+      calories: Number(editableCalories) || 0,
+      protein: Number(editableProtein) || 0,
+      carbs: Number(editableCarbs) || 0,
+      fats: Number(editableFats) || 0,
     });
     onClose();
   };
@@ -177,6 +218,56 @@ export default function FoodPhotoScannerModal({
           >
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Gemini API Key Setting Accordion */}
+        <div className="border border-border/80 rounded-xl p-3 bg-surface-2/60">
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setShowKeyModal(!showKeyModal)}
+              className="text-xs text-purple-400 hover:text-purple-300 font-medium flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{geminiApiKey ? '✅ Google Gemini AI ключът е активиран' : '⚙️ Настройка на безплатен Gemini AI ключ'}</span>
+            </button>
+            <span className="text-[10px] text-text-muted">
+              {showKeyModal ? 'Скрий' : 'Покажи'}
+            </span>
+          </div>
+
+          {showKeyModal && (
+            <div className="mt-2.5 pt-2.5 border-t border-border space-y-2 animate-fadeIn">
+              <p className="text-[11px] text-text-muted">
+                За директно автоматично разпознаване на всяка снимка от камерата можете да въведете личен безплатен Google Gemini ключ (генерира се безплатно от{' '}
+                <a
+                  href="https://aistudio.google.com/app/apikey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 underline hover:text-blue-300"
+                >
+                  Google AI Studio
+                </a>
+                ).
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  value={geminiApiKey}
+                  onChange={(e) => setGeminiApiKey(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="flex-1 px-3 py-1.5 rounded-lg bg-surface-3 border border-border text-xs text-white placeholder:text-text-muted font-mono focus:outline-none focus:border-purple-400"
+                />
+                <button
+                  type="button"
+                  onClick={() => saveApiKey(geminiApiKey)}
+                  className="px-3 py-1.5 rounded-lg bg-purple-500 hover:bg-purple-400 text-black font-bold text-xs shrink-0"
+                >
+                  {keySavedMessage ? 'Запазено!' : 'Запази'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Action Controls: Snap vs Upload */}
@@ -246,7 +337,7 @@ export default function FoodPhotoScannerModal({
 
         {/* Selected Image & Analysis State */}
         {imageSrc && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="relative w-full h-52 rounded-2xl overflow-hidden border border-border bg-black">
               <img src={imageSrc} alt="Food Snapshot" className="w-full h-full object-cover" />
 
@@ -255,9 +346,32 @@ export default function FoodPhotoScannerModal({
                 <div className="absolute inset-0 bg-black/50 backdrop-blur-xs flex flex-col items-center justify-center p-4">
                   <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-purple-400 to-transparent animate-pulse absolute top-1/2 shadow-[0_0_12px_rgba(168,85,247,0.9)]"></div>
                   <Loader2 className="w-8 h-8 text-purple-400 animate-spin mb-2" />
-                  <span className="text-xs font-mono font-semibold text-white">AI Vision: Разпознаване на съставките и порциите...</span>
+                  <span className="text-xs font-mono font-semibold text-white">Разпознаване на съставките и порциите...</span>
                 </div>
               )}
+            </div>
+
+            {/* Quick Hint / Search Input */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={foodHint}
+                onChange={(e) => setFoodHint(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') analyzeFoodImage(imageSrc, foodHint);
+                }}
+                placeholder="Какво е ястието? (напр. Нудли с кайма и зеленчуци)"
+                className="flex-1 px-3.5 py-2.5 rounded-xl bg-surface-2 border border-border text-xs text-white placeholder:text-text-muted focus:outline-none focus:border-purple-400"
+              />
+              <button
+                type="button"
+                onClick={() => analyzeFoodImage(imageSrc, foodHint)}
+                disabled={loading}
+                className="px-4 py-2.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-black font-bold text-xs shrink-0 flex items-center justify-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                {geminiApiKey ? 'AI Сканиране' : 'Изчисли макроси'}
+              </button>
             </div>
 
             {!loading && (
@@ -267,6 +381,7 @@ export default function FoodPhotoScannerModal({
                   onClick={() => {
                     setImageSrc(null);
                     setAiAnalysisResult(null);
+                    setErrorMsg(null);
                   }}
                   className="text-xs text-text-muted hover:text-white flex items-center gap-1"
                 >
@@ -280,42 +395,81 @@ export default function FoodPhotoScannerModal({
 
         {/* Error Alert */}
         {errorMsg && (
-          <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-2.5 text-xs text-red-300">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
-            <span>{errorMsg}</span>
+          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5 text-xs text-amber-200">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+            <div className="space-y-1">
+              <span>{errorMsg}</span>
+              {!geminiApiKey && (
+                <p className="text-[11px] text-text-muted">
+                  Съвет: Можете да напишете името на ястието в полето по-горе (напр. <em>„Нудли с кайма“</em>, <em>„Омлет със сирене“</em>, <em>„Пиле с ориз“</em>) и да натиснете <strong>Изчисли макроси</strong>.
+                </p>
+              )}
+            </div>
           </div>
         )}
 
-        {/* AI Breakdown Result */}
+        {/* AI Breakdown Result — With Direct Editable Inputs */}
         {aiAnalysisResult && (
           <div className="p-5 rounded-2xl bg-surface-2 border border-purple-500/30 space-y-4 animate-fadeIn">
             <div>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 uppercase font-mono">
-                  Разпознато от AI Vision
+                  {aiAnalysisResult.source === 'DATABASE_MATCH' ? 'Изчислено от База Данни' : 'Разпознато от AI Vision'}
+                </span>
+                <span className="text-[10px] text-text-muted font-mono">
+                  Можете да редактирате стойностите
                 </span>
               </div>
-              <h3 className="text-base font-bold text-white">{aiAnalysisResult.dishName}</h3>
-              <p className="text-xs text-text-muted mt-0.5">{aiAnalysisResult.description}</p>
+              <input
+                type="text"
+                value={editableName}
+                onChange={(e) => setEditableName(e.target.value)}
+                className="w-full text-base font-bold text-white bg-surface-3 px-3 py-1.5 rounded-xl border border-border focus:border-purple-400 focus:outline-none"
+                placeholder="Име на ястието"
+              />
+              <p className="text-xs text-text-muted mt-1">{aiAnalysisResult.description}</p>
             </div>
 
-            {/* Total Macro Card */}
+            {/* Total Macro Card with live editable inputs */}
             <div className="grid grid-cols-4 gap-2 text-center font-mono p-3 rounded-xl bg-surface-3 border border-border">
               <div>
-                <div className="text-[10px] text-orange-400 uppercase">Калории</div>
-                <div className="text-base font-bold text-white">{aiAnalysisResult.totalCalories}</div>
+                <div className="text-[10px] text-orange-400 uppercase font-bold mb-1">Калории</div>
+                <input
+                  type="number"
+                  value={editableCalories}
+                  onChange={(e) => setEditableCalories(Number(e.target.value))}
+                  className="w-full text-center text-sm font-bold text-white bg-surface-2 border border-border rounded-lg py-1 focus:border-orange-400 focus:outline-none"
+                />
               </div>
               <div>
-                <div className="text-[10px] text-blue-400 uppercase">Протеин</div>
-                <div className="text-base font-bold text-white">{aiAnalysisResult.totalProtein}г</div>
+                <div className="text-[10px] text-blue-400 uppercase font-bold mb-1">Протеин (г)</div>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={editableProtein}
+                  onChange={(e) => setEditableProtein(Number(e.target.value))}
+                  className="w-full text-center text-sm font-bold text-white bg-surface-2 border border-border rounded-lg py-1 focus:border-blue-400 focus:outline-none"
+                />
               </div>
               <div>
-                <div className="text-[10px] text-emerald-400 uppercase">Въглехидрати</div>
-                <div className="text-base font-bold text-white">{aiAnalysisResult.totalCarbs}г</div>
+                <div className="text-[10px] text-emerald-400 uppercase font-bold mb-1">Въгл. (г)</div>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={editableCarbs}
+                  onChange={(e) => setEditableCarbs(Number(e.target.value))}
+                  className="w-full text-center text-sm font-bold text-white bg-surface-2 border border-border rounded-lg py-1 focus:border-emerald-400 focus:outline-none"
+                />
               </div>
               <div>
-                <div className="text-[10px] text-amber-400 uppercase">Мазнини</div>
-                <div className="text-base font-bold text-white">{aiAnalysisResult.totalFats}г</div>
+                <div className="text-[10px] text-amber-400 uppercase font-bold mb-1">Мазнини (г)</div>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={editableFats}
+                  onChange={(e) => setEditableFats(Number(e.target.value))}
+                  className="w-full text-center text-sm font-bold text-white bg-surface-2 border border-border rounded-lg py-1 focus:border-amber-400 focus:outline-none"
+                />
               </div>
             </div>
 
@@ -340,7 +494,7 @@ export default function FoodPhotoScannerModal({
               className="w-full py-3 rounded-xl bg-purple-500 hover:bg-purple-400 text-black font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
             >
               <Check className="w-4 h-4 stroke-[3]" />
-              Добави в Хранителния Дневник
+              Добави в Хранителния Дневник ({editableCalories} kcal, {editableProtein}г протеин)
             </button>
           </div>
         )}

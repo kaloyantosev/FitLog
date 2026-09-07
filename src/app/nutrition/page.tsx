@@ -608,16 +608,6 @@ export default function NutritionPage() {
             <Scan className="w-4 h-4" />
             Скенер за Баркод
           </button>
-
-          {/* Date Selector */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-1 border border-border">
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-sm text-white font-mono focus:outline-none cursor-pointer"
-            />
-          </div>
         </div>
       </div>
 

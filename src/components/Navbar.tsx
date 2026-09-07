@@ -22,7 +22,6 @@ import NotificationSettingsModal from './NotificationSettingsModal';
 export default function Navbar() {
   const pathname = usePathname();
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [isCoachMode, setIsCoachMode] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
@@ -39,7 +38,6 @@ export default function Navbar() {
       .then((data) => {
         if (data && !data.error) {
           setUser(data);
-          setIsCoachMode(data.role === 'COACH');
         }
       })
       .catch((err) => console.error(err));
@@ -58,34 +56,12 @@ export default function Navbar() {
     }
   };
 
-  const toggleRole = async () => {
-    const nextRole = isCoachMode ? 'CLIENT' : 'COACH';
-    setIsCoachMode(!isCoachMode);
-    try {
-      const res = await fetch('/api/user', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: nextRole }),
-      });
-      const updated = await res.json();
-      if (updated && !updated.error) {
-        setUser(updated);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   const navLinks = [
     { href: '/', label: 'Табло', icon: LayoutDashboard },
     { href: '/workouts', label: 'Тренировки', icon: Dumbbell },
     { href: '/nutrition', label: 'Хранене и макроси', icon: Flame },
     { href: '/progress', label: 'Прогрес и чек-ин', icon: LineChart },
   ];
-
-  if (isCoachMode) {
-    navLinks.push({ href: '/coach', label: 'Треньорско студио', icon: ShieldCheck });
-  }
 
   const isAuthPage = pathname === '/register' || pathname === '/login';
 
@@ -136,7 +112,7 @@ export default function Navbar() {
                     FitLog
                   </span>
                   <span className="text-[10px] text-text-muted mt-0.5 font-medium tracking-wide">
-                    {isCoachMode ? 'FitLog Треньор' : 'Personal Coach'}
+                    Personal Coach
                   </span>
                 </div>
               </Link>
@@ -164,7 +140,7 @@ export default function Navbar() {
               </nav>
             </div>
 
-            {/* Right Side: Notification Icon, Switch Mode & Profile Name */}
+            {/* Right Side: Notification Icon & Profile Name */}
             <div className="flex items-center gap-3">
               {/* Notification Settings Bell Icon */}
               <button
@@ -178,21 +154,9 @@ export default function Navbar() {
                 )}
               </button>
 
-              {/* Coach / Athlete Mode Toggle */}
-              <button
-                onClick={toggleRole}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-1 hover:bg-surface-2 border border-border text-xs font-medium text-text-secondary transition-colors"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-                <span>{isCoachMode ? 'Треньор' : 'Атлет'}</span>
-              </button>
-
-              {/* Top right Profile: Just the person's name */}
+              {/* Top right Profile: Just the person's name without circular letter icon */}
               <div className="flex items-center gap-2 pl-2 border-l border-border/60">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-xs text-white uppercase shadow-sm">
-                  {user?.name ? user.name.charAt(0) : 'А'}
-                </div>
-                <span className="text-sm font-semibold text-white hidden sm:inline">
+                <span className="text-sm font-semibold text-white">
                   {user?.name || 'Атлет'}
                 </span>
                 <button

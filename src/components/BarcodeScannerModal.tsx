@@ -176,7 +176,7 @@ export default function BarcodeScannerModal({
             </div>
             <div>
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                Баркод Скенер (България, Lidl, Kaufland)
+                Баркод Скенер
               </h2>
               <p className="text-xs text-text-muted">
                 Сканирайте баркод за автоматично извличане на калории и макроси
@@ -217,7 +217,7 @@ export default function BarcodeScannerModal({
             }`}
           >
             <Search className="w-4 h-4" />
-            Ръчен Код / Български & Lidl / Kaufland
+            Ръчно Въвеждане на Код
           </button>
         </div>
 
@@ -289,7 +289,7 @@ export default function BarcodeScannerModal({
 
             <div>
               <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2">
-                Кликнете за бърз тест с продукти от Lidl, Kaufland и български марки:
+                Кликнете за бърз тест с примерни баркодове:
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {sampleBarcodes.map((item) => (
@@ -315,7 +315,7 @@ export default function BarcodeScannerModal({
         {loading && (
           <div className="p-4 rounded-xl bg-surface-2 border border-border flex items-center justify-center gap-3 text-xs text-text-secondary font-mono">
             <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
-            Търсене в българската, Lidl & Kaufland база данни...
+            Търсене на продукта в базата данни...
           </div>
         )}
 
@@ -327,31 +327,38 @@ export default function BarcodeScannerModal({
           </div>
         )}
 
-        {/* Found Product Result Card */}
+        {/* Scanned Product Info & Gram Selector */}
         {scannedProduct && (
-          <div className="p-4 rounded-2xl bg-surface-2 border border-emerald-500/30 space-y-4 animate-fadeIn">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-surface-3 border border-border flex items-center justify-center text-white shrink-0 overflow-hidden">
-                  {scannedProduct.imageUrl ? (
-                    <img src={scannedProduct.imageUrl} alt="Product" className="w-full h-full object-cover" />
-                  ) : (
-                    <Package className="w-5 h-5 text-emerald-400" />
-                  )}
-                </div>
+          <div className="space-y-4 animate-fadeIn">
+            <div className="p-4 rounded-2xl bg-surface-2 border border-border space-y-3">
+              <div className="flex items-start justify-between gap-3">
                 <div>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase font-mono">
-                    Намерен продукт
-                  </span>
-                  <h3 className="text-sm font-bold text-white mt-1">{scannedProduct.productName}</h3>
-                  {scannedProduct.brand && (
-                    <p className="text-xs text-text-muted">{scannedProduct.brand}</p>
-                  )}
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase font-mono">
+                      Намерен Продукт
+                    </span>
+                    {scannedProduct.brand && (
+                      <span className="text-xs text-text-muted">{scannedProduct.brand}</span>
+                    )}
+                  </div>
+                  <h3 className="text-base font-bold text-white leading-snug">{scannedProduct.productName}</h3>
                 </div>
+              </div>
+
+              {/* Base per 100g badge */}
+              <div className="flex items-center gap-3 text-xs font-mono text-text-muted pt-1 border-t border-border/60">
+                <span>Базово за 100г:</span>
+                <span className="text-white font-semibold">{scannedProduct.per100g.calories} kcal</span>
+                <span>•</span>
+                <span className="text-blue-400 font-semibold">{scannedProduct.per100g.protein}г П</span>
+                <span>•</span>
+                <span className="text-emerald-400 font-semibold">{scannedProduct.per100g.carbs}г В</span>
+                <span>•</span>
+                <span className="text-amber-400 font-semibold">{scannedProduct.per100g.fats}г М</span>
               </div>
             </div>
 
-            {/* Serving Size: Exact Grams Input, Slider & "Цялото" Option */}
+            {/* Serving Size: Exact Grams Input and Quick Buttons */}
             <div className="p-3.5 rounded-xl bg-surface-3 border border-border space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-text-secondary font-medium">Колко грама изядохте?</span>
@@ -378,36 +385,16 @@ export default function BarcodeScannerModal({
                 className="w-full accent-blue-500 cursor-pointer"
               />
 
-              {/* Quick Gram Buttons + "Цялото" button */}
+              {/* Quick Gram Buttons */}
               <div className="flex flex-wrap gap-1.5 pt-1">
-                {scannedProduct.packageGrams && (
-                  <button
-                    type="button"
-                    onClick={() => setServingGrams(String(scannedProduct.packageGrams))}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
-                      parseFloat(servingGrams) === scannedProduct.packageGrams
-                        ? 'bg-emerald-500 text-black shadow'
-                        : 'bg-surface-2 text-emerald-400 hover:bg-surface-1 border border-emerald-500/30'
-                    }`}
-                  >
-                    ⭐ Цялото ({scannedProduct.packageGrams}г)
-                  </button>
-                )}
-                {!scannedProduct.packageGrams && (
-                  <button
-                    type="button"
-                    onClick={() => setServingGrams('400')}
-                    className="px-2.5 py-1 rounded-lg text-xs font-bold bg-surface-2 text-emerald-400 hover:bg-surface-1 border border-emerald-500/30"
-                  >
-                    ⭐ Цялото (400г)
-                  </button>
-                )}
-                <button type="button" onClick={() => setServingGrams('50')} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '50' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>50г</button>
-                <button type="button" onClick={() => setServingGrams('100')} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '100' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>100г</button>
-                <button type="button" onClick={() => setServingGrams('150')} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '150' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>150г</button>
-                <button type="button" onClick={() => setServingGrams('200')} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '200' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>200г</button>
-                <button type="button" onClick={() => setServingGrams('250')} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '250' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>250г</button>
-                <button type="button" onClick={() => setServingGrams('500')} className={`px-2 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '500' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>500г</button>
+                <button type="button" onClick={() => setServingGrams('50')} className={`px-2.5 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '50' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>50г</button>
+                <button type="button" onClick={() => setServingGrams('100')} className={`px-2.5 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '100' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>100г</button>
+                <button type="button" onClick={() => setServingGrams('150')} className={`px-2.5 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '150' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>150г</button>
+                <button type="button" onClick={() => setServingGrams('200')} className={`px-2.5 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '200' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>200г</button>
+                <button type="button" onClick={() => setServingGrams('250')} className={`px-2.5 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '250' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>250г</button>
+                <button type="button" onClick={() => setServingGrams('300')} className={`px-2.5 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '300' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>300г</button>
+                <button type="button" onClick={() => setServingGrams('400')} className={`px-2.5 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '400' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>400г</button>
+                <button type="button" onClick={() => setServingGrams('500')} className={`px-2.5 py-1 rounded-lg text-[11px] font-mono ${servingGrams === '500' ? 'bg-white text-black font-bold' : 'bg-surface-2 text-text-secondary hover:text-white'}`}>500г</button>
               </div>
             </div>
 
