@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Sparkles,
   Bell,
-  Settings
+  Settings,
+  LogOut
 } from 'lucide-react';
 import { UserProfile } from '@/types';
 import NotificationSettingsModal from './NotificationSettingsModal';
@@ -26,7 +27,15 @@ export default function Navbar() {
 
   useEffect(() => {
     fetch('/api/user')
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.status === 401) {
+          if (pathname !== '/register' && pathname !== '/login') {
+            window.location.href = '/register';
+          }
+          return null;
+        }
+        return res.json();
+      })
       .then((data) => {
         if (data && !data.error) {
           setUser(data);
@@ -34,7 +43,20 @@ export default function Navbar() {
         }
       })
       .catch((err) => console.error(err));
-  }, []);
+  }, [pathname]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('fitlog_user_id');
+        localStorage.removeItem('fitlog_user_email');
+      }
+      window.location.href = '/register';
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
 
   const toggleRole = async () => {
     const nextRole = isCoachMode ? 'CLIENT' : 'COACH';
@@ -173,6 +195,14 @@ export default function Navbar() {
                 <span className="text-sm font-semibold text-white hidden sm:inline">
                   {user?.name || 'Атлет'}
                 </span>
+                <button
+                  onClick={handleLogout}
+                  className="p-1.5 ml-1 rounded-lg bg-surface-1 hover:bg-red-500/10 border border-border hover:border-red-500/30 text-text-muted hover:text-red-400 transition-all text-xs flex items-center gap-1"
+                  title="Изход от профила"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden lg:inline text-[11px] font-medium">Изход</span>
+                </button>
               </div>
             </div>
           </div>

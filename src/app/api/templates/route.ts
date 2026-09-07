@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAuthUser } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const user = await getAuthUser(request);
+    const whereClause = user
+      ? { OR: [{ userId: user.id }, { isDefault: true }, { userId: null }] }
+      : { OR: [{ isDefault: true }, { userId: null }] };
+
     const templates = await prisma.workoutTemplate.findMany({
+      where: whereClause,
       include: {
         exercises: {
           include: {
@@ -28,11 +35,13 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const user = await getAuthUser(request);
     const data = await request.json();
     const { title, description, category, exercises, estimatedDurationMinutes } = data;
 
     const template = await prisma.workoutTemplate.create({
       data: {
+        userId: user ? user.id : undefined,
         title,
         description,
         category: category || 'FULL_BODY',
@@ -65,10 +74,27 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
   try {
-    await prisma.templateExercise.deleteMany();
-    await prisma.workoutTemplate.deleteMany();
+    const user = await getAuthUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Не сте автентикиран' }, { status: 401 });
+    }
+
+    const userTemplates = await prisma.workoutTemplate.findMany({
+      where: { userId: user.id },
+      select: { id: true },
+    });
+    const ids = userTemplates.map(t => t.id);
+    if (ids.length > 0) {
+      await prisma.templateExercise.deleteMany({
+        where: { templateId: { in: ids } },
+      });
+      await prisma.workoutTemplate.deleteMany({
+        where: { id: { in: ids } },
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting templates:', error);

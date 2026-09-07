@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAuthUser } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const user = await getAuthUser(request);
+    if (!user) {
+      return NextResponse.json([]);
+    }
+
     const workouts = await prisma.workoutLog.findMany({
+      where: { userId: user.id },
       include: {
         template: true,
         loggedSets: {
@@ -30,15 +37,12 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    let user = await prisma.user.findFirst();
+    let user = await getAuthUser(request);
     if (!user) {
-      user = await prisma.user.create({
-        data: {
-          id: 'demo-client-1',
-          name: 'Атлет',
-          email: 'athlete@fitlog.bg',
-        },
-      });
+      user = await prisma.user.findFirst();
+    }
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { title, templateId, durationMinutes, totalVolumeKg, notes, loggedSets } = data;
@@ -59,21 +63,18 @@ export async function POST(request: Request) {
             weightKg: parseFloat(s.weightKg) || 0,
             reps: parseInt(s.reps) || 0,
             rpe: s.rpe ? parseFloat(s.rpe) : null,
-            isCompleted: s.isCompleted !== undefined ? s.isCompleted : true,
+            isCompleted: s.isCompleted ?? true,
           })),
         },
       },
       include: {
-        template: true,
-        loggedSets: {
-          include: { exercise: true },
-        },
+        loggedSets: true,
       },
     });
 
     return NextResponse.json(workout, { status: 201 });
   } catch (error) {
-    console.error('Error saving workout:', error);
+    console.error('Error creating workout log:', error);
     return NextResponse.json({ error: 'Failed to save workout' }, { status: 500 });
   }
 }

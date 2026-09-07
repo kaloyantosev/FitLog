@@ -80,6 +80,7 @@ function WorkoutsContent() {
   const [timerActive, setTimerActive] = useState(false);
   const [isTimerOpen, setIsTimerOpen] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasAutoStarted = useRef(false);
 
   // Workout Completed Summary Modal
   const [completedSummary, setCompletedSummary] = useState<{
@@ -211,6 +212,20 @@ function WorkoutsContent() {
       exercises: sessionExercises,
     });
   };
+
+  // Auto-start workout session if ?active=... param is present (e.g. clicked from dashboard)
+  useEffect(() => {
+    if (!loading && activeParam && templates.length > 0 && !hasAutoStarted.current) {
+      let matched = templates.find((t) => t.id === activeParam);
+      if (!matched && (activeParam === 'first' || activeParam === 'today' || activeParam === 'start')) {
+        matched = templates[0];
+      }
+      if (matched) {
+        hasAutoStarted.current = true;
+        startWorkoutFromTemplate(matched);
+      }
+    }
+  }, [activeParam, loading, templates]);
 
   const addExerciseToActiveSession = (exerciseId: string) => {
     if (!activeSession) return;

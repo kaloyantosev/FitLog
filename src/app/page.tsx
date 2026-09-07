@@ -119,7 +119,7 @@ export default function DashboardPage() {
             Създай различна цел
           </Link>
           <Link
-            href="/workouts"
+            href={templates.length > 0 ? `/workouts?active=${templates[0].id}` : '/workouts?active=start'}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-all shadow-md active:scale-95"
           >
             <Play className="w-3.5 h-3.5 fill-current" />

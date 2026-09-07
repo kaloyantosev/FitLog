@@ -268,15 +268,26 @@ export default function RegisterPage() {
     setLoading(true);
     setLoginStatus(null);
     try {
-      const res = await fetch('/api/user');
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: loginEmail.trim().toLowerCase(),
+          password: loginPassword,
+        }),
+      });
       const data = await res.json();
-      if (data && !data.error) {
+      if (res.ok && data?.user) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('fitlog_user_id', data.user.id);
+          localStorage.setItem('fitlog_user_email', data.user.email);
+        }
         setLoginStatus('Успешен вход! Пренасочване към портала...');
         setTimeout(() => {
-          router.push('/');
-        }, 800);
+          window.location.href = '/';
+        }, 500);
       } else {
-        setLoginStatus('Грешка при вход. Моля проверете вашите данни.');
+        setLoginStatus(data?.error || 'Грешен имейл или парола. Моля опитайте отново.');
       }
     } catch (err) {
       setLoginStatus('Мрежова грешка при свързване със сървъра.');
@@ -321,12 +332,13 @@ export default function RegisterPage() {
       setLoadingMessage('Запазване на профила и генериране на тренировъчни шаблони...');
 
       // 2. Save User to Database
-      await fetch('/api/user', {
+      const userRes = await fetch('/api/user', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name ? formData.name.trim().split(' ')[0] : 'Атлет',
           email: formData.email,
+          password: formData.password,
           gender: formData.gender,
           age: parseInt(String(formData.age)) || 25,
           heightCm: parseFloat(String(formData.heightCm)) || 175,
@@ -350,6 +362,12 @@ export default function RegisterPage() {
           mealPlanData: result.sevenDayMealPlan,
         }),
       });
+
+      const userData = await userRes.json();
+      if (userData?.id && typeof window !== 'undefined') {
+        localStorage.setItem('fitlog_user_id', userData.id);
+        localStorage.setItem('fitlog_user_email', userData.email);
+      }
 
       // 3. Clear existing templates and seed the newly synthesized templates
       try {

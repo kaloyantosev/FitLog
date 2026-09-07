@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { generateCoachAiFeedback } from '@/lib/aiCoach';
+import { getAuthUser } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const user = await getAuthUser(request);
+    if (!user) {
+      return NextResponse.json([]);
+    }
+
     const checkins = await prisma.checkin.findMany({
+      where: { userId: user.id },
       orderBy: { date: 'asc' },
     });
 
@@ -17,17 +24,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-    let user = await prisma.user.findFirst();
+    const user = await getAuthUser(request);
     if (!user) {
-      user = await prisma.user.create({
-        data: {
-          id: 'demo-client-1',
-          name: 'Атлет',
-          email: 'athlete@fitlog.bg',
-        },
-      });
+      return NextResponse.json({ error: 'Не сте автентикиран' }, { status: 401 });
     }
+
+    const data = await request.json();
 
     const {
       date,

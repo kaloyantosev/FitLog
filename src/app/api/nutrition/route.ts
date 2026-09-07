@@ -1,13 +1,22 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getAuthUser } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date') || new Date().toISOString().split('T')[0];
 
+    const user = await getAuthUser(request);
+    if (!user) {
+      return NextResponse.json([]);
+    }
+
     const logs = await prisma.nutritionLog.findMany({
-      where: { date },
+      where: {
+        userId: user.id,
+        date,
+      },
       orderBy: { createdAt: 'asc' },
     });
 
@@ -21,15 +30,12 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    let user = await prisma.user.findFirst();
+    let user = await getAuthUser(request);
     if (!user) {
-      user = await prisma.user.create({
-        data: {
-          id: 'demo-client-1',
-          name: 'Атлет',
-          email: 'athlete@fitlog.bg',
-        },
-      });
+      user = await prisma.user.findFirst();
+    }
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { date, mealType, foodName, calories, protein, carbs, fats } = data;
