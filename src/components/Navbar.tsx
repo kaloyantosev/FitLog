@@ -57,8 +57,8 @@ export default function Navbar() {
   const navLinks = [
     { href: '/', label: 'Табло', icon: LayoutDashboard },
     { href: '/workouts', label: 'Тренировки', icon: Dumbbell },
-    { href: '/nutrition', label: 'Хранене & Макроси', icon: Flame },
-    { href: '/progress', label: 'Прогрес & Чек-ин', icon: LineChart },
+    { href: '/nutrition', label: 'Хранене и макроси', icon: Flame },
+    { href: '/progress', label: 'Прогрес и чек-ин', icon: LineChart },
   ];
 
   if (isCoachMode) {
@@ -88,7 +88,7 @@ export default function Navbar() {
 
             <div className="flex items-center gap-2">
               <span className="text-xs text-text-muted font-medium hidden sm:inline">
-                Персонален AI Треньор & Портал за Хранене
+                Персонален AI треньор и портал за хранене
               </span>
             </div>
           </div>
@@ -184,8 +184,8 @@ export default function Navbar() {
             const Icon = link.icon;
             const isActive = pathname === link.href;
             const shortLabel = link.label
-              .replace('Хранене & Макроси', 'Хранене')
-              .replace('Прогрес & Чек-ин', 'Прогрес')
+              .replace('Хранене и макроси', 'Хранене')
+              .replace('Прогрес и чек-ин', 'Прогрес')
               .replace('Треньорско студио', 'Треньор');
             return (
               <Link

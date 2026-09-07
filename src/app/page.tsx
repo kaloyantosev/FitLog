@@ -95,7 +95,7 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-surface-2 border border-border text-text-secondary uppercase tracking-wider">
-              Ежедневен Протокол
+              Ежедневна програма
             </span>
             <span className="text-xs text-text-muted flex items-center gap-1 font-mono">
               <Calendar className="w-3.5 h-3.5" />
@@ -191,7 +191,7 @@ export default function DashboardPage() {
         {/* Weight & Progress Card */}
         <div className="p-6 rounded-3xl bg-surface-1 border border-border flex flex-col justify-between space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Текущо Тегло & Цел</span>
+            <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Текущо тегло и цел</span>
             <Target className="w-5 h-5 text-emerald-400" />
           </div>
           <div>

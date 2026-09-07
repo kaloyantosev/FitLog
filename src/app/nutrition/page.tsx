@@ -53,8 +53,26 @@ export default function NutritionPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [logs, setLogs] = useState<NutritionEntry[]>([]);
-  const [waterMl, setWaterMl] = useState<number>(2250);
+  const [waterMl, setWaterMl] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+
+  // Load water for selected date from localStorage (defaults to 0 for new registration / new days)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(`fitlog_water_${selectedDate}`);
+      setWaterMl(saved !== null ? parseInt(saved, 10) || 0 : 0);
+    }
+  }, [selectedDate]);
+
+  const changeWater = (delta: number | 'RESET') => {
+    setWaterMl((prev) => {
+      const next = delta === 'RESET' ? 0 : Math.max(0, prev + delta);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`fitlog_water_${selectedDate}`, String(next));
+      }
+      return next;
+    });
+  };
 
   // 7-Day Meal Plan State
   const [mealPlan, setMealPlan] = useState<SevenDayMealPlan | null>(null);
@@ -360,11 +378,11 @@ export default function NutritionPage() {
     });
 
     const categoryTitles: Record<string, { title: string; icon: string }> = {
-      MEAT_FISH: { title: 'Месо, Риба & Птици', icon: '🥩' },
-      DAIRY_EGGS: { title: 'Млечни Продукти & Яйца', icon: '🧀' },
-      GRAINS_PANTRY: { title: 'Зърнени, Овес & Варива', icon: '🌾' },
-      PRODUCE: { title: 'Зеленчуци & Плодове', icon: '🥦' },
-      FATS_NUTS: { title: 'Ядки & Здравословни Мазнини', icon: '🥑' },
+      MEAT_FISH: { title: 'Месо, риба и птици', icon: '🥩' },
+      DAIRY_EGGS: { title: 'Млечни продукти и яйца', icon: '🧀' },
+      GRAINS_PANTRY: { title: 'Зърнени, овес и варива', icon: '🌾' },
+      PRODUCE: { title: 'Зеленчуци и плодове', icon: '🥦' },
+      FATS_NUTS: { title: 'Ядки и здравословни мазнини', icon: '🥑' },
     };
 
     const grouped: Record<string, { title: string; icon: string; items: { name: string; nameBg: string; totalGrams: number; unit: string; category: string }[] }> = {};
@@ -484,7 +502,7 @@ export default function NutritionPage() {
       });
 
       setLoggedSlots((prev) => ({ ...prev, [slotKey]: true }));
-      setMealLogNotification(`Успешно вписахте "${option.nameBg || option.name}" (${option.calories} ккал) в дневника!`);
+      setMealLogNotification(`Успешно записахте "${option.nameBg || option.name}" (${option.calories} ккал) в дневника!`);
       setTimeout(() => setMealLogNotification(null), 3000);
       fetchData();
     } catch (e) {
@@ -524,7 +542,7 @@ export default function NutritionPage() {
       }
 
       setLoggedWholeDay((prev) => ({ ...prev, [dayIdx]: true }));
-      setMealLogNotification(`Всички ${dayPlan.mealSlots.length} хранения за ${dayPlan.dayNameBg || dayPlan.dayName} са вписани в дневника!`);
+      setMealLogNotification(`Всички ${dayPlan.mealSlots.length} хранения за ${dayPlan.dayNameBg || dayPlan.dayName} са записани в дневника!`);
       setTimeout(() => setMealLogNotification(null), 3500);
       fetchData();
     } catch (e) {
@@ -556,7 +574,7 @@ export default function NutritionPage() {
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-          <span className="text-text-muted text-sm font-medium">Зареждане на хранителния протокол...</span>
+          <span className="text-text-muted text-sm font-medium">Зареждане на хранителния режим...</span>
         </div>
       </div>
     );
@@ -571,7 +589,7 @@ export default function NutritionPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-surface-2 border border-border text-text-secondary uppercase tracking-wider">
-              Хранене & Метаболитен Баланс
+              Хранене и калориен баланс
             </span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-white">Хранене и Макронутриенти</h1>
@@ -731,7 +749,7 @@ export default function NutritionPage() {
             <div className="flex items-center justify-between text-xs text-text-muted mb-2 font-medium">
               <span className="text-cyan-400 font-semibold flex items-center gap-1.5">
                 <Droplets className="w-4 h-4 text-cyan-400" />
-                Хидратация
+                Прием на вода
               </span>
               <span className="font-mono text-[11px]">Цел: {wTarget} мл</span>
             </div>
@@ -770,21 +788,21 @@ export default function NutritionPage() {
         <div className="flex items-center flex-wrap gap-1.5 w-full sm:w-auto justify-end">
           <button
             type="button"
-            onClick={() => setWaterMl((prev) => prev + 250)}
+            onClick={() => changeWater(250)}
             className="px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-200 text-xs font-semibold flex items-center gap-1 transition-all active:scale-95"
           >
             +250 мл (Чаша)
           </button>
           <button
             type="button"
-            onClick={() => setWaterMl((prev) => prev + 500)}
+            onClick={() => changeWater(500)}
             className="px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-200 text-xs font-semibold flex items-center gap-1 transition-all active:scale-95"
           >
             +500 мл (Бутилка)
           </button>
           <button
             type="button"
-            onClick={() => setWaterMl((prev) => prev + 1000)}
+            onClick={() => changeWater(1000)}
             className="px-3 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-cyan-200 text-xs font-semibold flex items-center gap-1 transition-all active:scale-95"
           >
             +1000 мл (1 Л)
@@ -792,7 +810,7 @@ export default function NutritionPage() {
           {waterMl > 0 && (
             <button
               type="button"
-              onClick={() => setWaterMl((prev) => Math.max(0, prev - 250))}
+              onClick={() => changeWater(-250)}
               className="px-2.5 py-1.5 rounded-xl bg-surface-2 hover:bg-surface-3 text-text-muted hover:text-white text-xs font-mono transition-all"
               title="Намали с 250 мл"
             >
@@ -802,7 +820,7 @@ export default function NutritionPage() {
           {waterMl > 0 && (
             <button
               type="button"
-              onClick={() => setWaterMl(0)}
+              onClick={() => changeWater('RESET')}
               className="p-1.5 rounded-xl bg-surface-2 hover:bg-surface-3 text-text-muted hover:text-red-400 transition-all"
               title="Ресет на водата (0 мл)"
             >
@@ -828,7 +846,7 @@ export default function NutritionPage() {
                   </span>
                 </h2>
                 <p className="text-xs text-text-muted">
-                  Всяко хранене включва 2 готови алтернативи. Изберете предпочитаната и натиснете &quot;Запиши в дневника&quot;.
+                  План за следващите 7 дни, започвайки от днес. Всяко хранене включва готови алтернативи.
                 </p>
               </div>
             </div>
@@ -838,18 +856,35 @@ export default function NutritionPage() {
           <div className="grid grid-cols-7 gap-2 border-y border-border/50 py-3">
             {mealPlan.days.map((d, dIdx) => {
               const isActive = dIdx === activePlanDayIndex;
+              const targetDate = new Date();
+              targetDate.setDate(targetDate.getDate() + dIdx);
+              const shortDays = ['НЕД', 'ПОН', 'ВТО', 'СРЯ', 'ЧЕТ', 'ПЕТ', 'СЪБ'];
+              const dayName = shortDays[targetDate.getDay()];
+              const isToday = dIdx === 0;
+
               return (
                 <button
                   key={d.dayIndex}
-                  onClick={() => setActivePlanDayIndex(dIdx)}
-                  className={`p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all ${
+                  onClick={() => {
+                    setActivePlanDayIndex(dIdx);
+                    const year = targetDate.getFullYear();
+                    const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(targetDate.getDate()).padStart(2, '0');
+                    setSelectedDate(`${year}-${month}-${day}`);
+                  }}
+                  className={`p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all relative ${
                     isActive
-                      ? 'bg-white text-black font-bold shadow-lg scale-105'
+                      ? 'bg-white text-black font-bold shadow-lg scale-105 ring-2 ring-blue-500/50'
                       : 'bg-surface-2 hover:bg-surface-3 text-text-muted hover:text-white border border-border/40'
                   }`}
                 >
+                  {isToday && (
+                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-blue-500 text-black leading-none mb-0.5 shadow-sm">
+                      Днес
+                    </span>
+                  )}
                   <span className="text-[10px] uppercase font-mono tracking-wider">
-                    {['Пон', 'Вто', 'Сря', 'Чет', 'Пет', 'Съб', 'Нед'][dIdx]}
+                    {isToday ? 'ДНЕС' : `${dayName} ${targetDate.getDate()}`}
                   </span>
                   <span className="text-xs font-semibold">{d.totalCalories} ккал</span>
                 </button>

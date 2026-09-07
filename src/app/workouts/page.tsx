@@ -76,7 +76,7 @@ function WorkoutsContent() {
 
   // Single Rest Timer State (Located strictly next to finish workout)
   const [restSecondsRemaining, setRestSecondsRemaining] = useState<number | null>(null);
-  const [initialRestDuration, setInitialRestDuration] = useState<number>(90);
+  const [initialRestDuration, setInitialRestDuration] = useState<number>(120);
   const [timerActive, setTimerActive] = useState(false);
   const [isTimerOpen, setIsTimerOpen] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -141,7 +141,7 @@ function WorkoutsContent() {
 
   const resumeTimer = () => {
     if (restSecondsRemaining === null || restSecondsRemaining <= 0) {
-      startRestTimer(initialRestDuration || 90);
+      startRestTimer(initialRestDuration || 120);
       return;
     }
     setTimerActive(true);
@@ -193,7 +193,7 @@ function WorkoutsContent() {
         targetSets: te.targetSets,
         repRange: te.repRange,
         targetRpe: te.targetRpe || 8,
-        restSeconds: te.restSeconds || 90,
+        restSeconds: te.restSeconds || 120,
         sets,
       };
     });
@@ -276,7 +276,7 @@ function WorkoutsContent() {
 
     // Trigger single rest timer automatically on set completion
     if (field === 'isCompleted' && val === true) {
-      const restSec = activeSession.exercises[exIdx].restSeconds || 90;
+      const restSec = activeSession.exercises[exIdx].restSeconds || 120;
       startRestTimer(restSec);
     }
 
@@ -385,7 +385,7 @@ function WorkoutsContent() {
                 <button
                   onClick={() => {
                     if (restSecondsRemaining === null) {
-                      startRestTimer(90);
+                      startRestTimer(120);
                     } else {
                       setIsTimerOpen(!isTimerOpen);
                     }
@@ -402,7 +402,7 @@ function WorkoutsContent() {
                   <span>
                     {restSecondsRemaining !== null
                       ? `Таймер за почивка: ${restSecondsRemaining}s`
-                      : 'Таймер за почивка (90s)'}
+                      : 'Таймер за почивка (120s)'}
                   </span>
                 </button>
 
@@ -492,7 +492,7 @@ function WorkoutsContent() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    Загряващ Протокол & Мобилност Преди Тренировка (5-8 мин)
+                    Загрявка и мобилност преди тренировка (5-8 мин)
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">
                       Задължителна фаза
                     </span>
@@ -544,7 +544,7 @@ function WorkoutsContent() {
                       className="w-full mt-2 py-1.5 rounded-xl bg-surface-3 hover:bg-white/10 text-xs text-amber-300 font-semibold flex items-center justify-center gap-1.5 transition-colors"
                     >
                       <Video className="w-3.5 h-3.5" />
-                      Гледай видео насока
+                      Гледай видео урок
                     </button>
                   </div>
                 ))}
@@ -558,11 +558,39 @@ function WorkoutsContent() {
               <div key={ex.exerciseId + exIdx} className="p-5 rounded-3xl bg-surface-1 border border-border space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/40">
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-xl bg-surface-3 flex items-center justify-center text-xs font-bold text-white font-mono">
-                      {exIdx + 1}
-                    </span>
+                    {/* Equipment thumbnail photo */}
+                    {(() => {
+                      const exObj = exercises.find((e) => e.id === ex.exerciseId);
+                      const equipmentImages: Record<string, { url: string; label: string }> = {
+                        BARBELL: { url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=96&auto=format&fit=crop&q=80', label: 'Прав лост' },
+                        DUMBBELL: { url: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=96&auto=format&fit=crop&q=80', label: 'Дъмбел' },
+                        CABLE: { url: 'https://images.unsplash.com/photo-1591311630200-ffa9120a540f?w=96&auto=format&fit=crop&q=80', label: 'Кабелна машина' },
+                        MACHINE: { url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=96&auto=format&fit=crop&q=80', label: 'Фитнес машина' },
+                        BODYWEIGHT: { url: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=96&auto=format&fit=crop&q=80', label: 'Собствено тегло' },
+                      };
+                      const equip = exObj?.equipment || 'BARBELL';
+                      const img = equipmentImages[equip] || equipmentImages.BARBELL;
+                      return (
+                        <div className="relative shrink-0 group/equip" title={img.label}>
+                          <img
+                            src={img.url}
+                            alt={img.label}
+                            className="w-12 h-12 rounded-xl object-cover border border-border/60 shadow-sm"
+                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                          />
+                          <div className="absolute -bottom-5 left-0 text-[9px] font-bold bg-[#090a0f] text-text-muted px-1.5 py-0.5 rounded-md border border-border/60 leading-tight whitespace-nowrap opacity-0 group-hover/equip:opacity-100 transition-opacity pointer-events-none z-20">
+                            {img.label}
+                          </div>
+                        </div>
+                      );
+                    })()}
                     <div>
-                      <h3 className="text-base font-bold text-white">{ex.exerciseName}</h3>
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-md bg-surface-3 flex items-center justify-center text-[10px] font-bold text-text-muted font-mono shrink-0">
+                          {exIdx + 1}
+                        </span>
+                        <h3 className="text-base font-bold text-white">{ex.exerciseName}</h3>
+                      </div>
                       <div className="text-xs text-text-muted font-mono flex items-center gap-2 mt-0.5">
                         <span>Цел: {ex.targetSets} серии × {ex.repRange} повторения</span>
                         <span>•</span>
@@ -676,9 +704,52 @@ function WorkoutsContent() {
               ))}
             </div>
           </div>
+
+          {/* Floating Circular Rest Timer */}
+          {restSecondsRemaining !== null && (
+            <div className="fixed bottom-24 md:bottom-8 right-4 z-50 flex flex-col items-center gap-2">
+              <div className="relative w-24 h-24">
+                <svg className="w-24 h-24 -rotate-90" viewBox="0 0 96 96">
+                  <circle
+                    cx="48" cy="48" r="42"
+                    fill="none"
+                    stroke="#1e293b"
+                    strokeWidth="8"
+                  />
+                  <circle
+                    cx="48" cy="48" r="42"
+                    fill="none"
+                    stroke={restSecondsRemaining > 60 ? '#3b82f6' : restSecondsRemaining > 30 ? '#f59e0b' : '#ef4444'}
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 42}`}
+                    strokeDashoffset={`${2 * Math.PI * 42 * (1 - restSecondsRemaining / initialRestDuration)}`}
+                    className="transition-all duration-1000"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className={`text-xl font-black font-mono ${
+                    restSecondsRemaining > 60 ? 'text-blue-300' : restSecondsRemaining > 30 ? 'text-amber-300' : 'text-red-400'
+                  }`}>{restSecondsRemaining}</span>
+                  <span className="text-[9px] text-text-muted font-mono uppercase tracking-wider">сек</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-text-muted font-semibold">Почивка</span>
+                <button
+                  onClick={resetRestTimer}
+                  className="w-5 h-5 rounded-full bg-surface-2 hover:bg-red-500/20 text-text-muted hover:text-red-400 flex items-center justify-center transition-all"
+                  title="Затвори таймера"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         /* Normal Template Browser & Completed History */
+
         <div className="space-y-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">

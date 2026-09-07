@@ -140,7 +140,7 @@ export default function ProgressPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-surface-2 border border-border text-text-secondary uppercase tracking-wider">
-              Биометричен Анализ & AI Чек-ин
+              Биометричен анализ и AI чек-ин
             </span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-white">Прогрес и Седмични Отчети</h1>
@@ -297,7 +297,7 @@ export default function ProgressPage() {
       <div className="space-y-6">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
           <Bot className="w-5 h-5 text-blue-400" />
-          История на Отчетите & AI Треньорски Анализи
+          История на отчетите и AI треньорски анализи
         </h2>
 
         {checkins.length === 0 ? (
@@ -370,7 +370,7 @@ export default function ProgressPage() {
               <div>
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                   <Brain className="w-5 h-5 text-blue-400" />
-                  Седмичен Чек-ин & Биометричен Отчет
+                  Седмичен чек-ин и биометричен отчет
                 </h3>
                 <p className="text-xs text-text-muted mt-0.5">
                   Въведете вашите мерки и скали за възстановяване. AI треньорът ще генерира детайлен анализ и ще коригира тежестите при необходимост.
@@ -533,7 +533,7 @@ export default function ProgressPage() {
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-text-muted flex items-center gap-1">
                       <Flame className="w-3.5 h-3.5 text-orange-400" />
-                      Ниво на Стрес & Напрежение
+                      Ниво на стрес и напрежение
                     </span>
                     <span className="font-mono font-bold text-white">{checkinForm.stressRating} / 5</span>
                   </div>
@@ -557,7 +557,7 @@ export default function ProgressPage() {
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-text-muted flex items-center gap-1">
                       <Moon className="w-3.5 h-3.5 text-purple-400" />
-                      Качество на Съня & Възстановяване
+                      Качество на съня и възстановяване
                     </span>
                     <span className="font-mono font-bold text-white">{checkinForm.sleepRating} / 5</span>
                   </div>

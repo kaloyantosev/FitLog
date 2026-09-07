@@ -35,24 +35,24 @@ export default function WeeklyWorkoutCalendar({
 }: WeeklyWorkoutCalendarProps) {
   const [activeDays, setActiveDays] = useState<number>(trainingDaysPerWeek || 4);
 
-  // Current day of the week (0 = Monday, 1 = Tuesday, ..., 6 = Sunday)
+  // Current date
   const now = new Date();
-  const currentDayIndex = (now.getDay() + 6) % 7;
 
-  // Calculate dates of the current week (Monday to Sunday)
+  // Calculate dates of the rolling 7 days starting from TODAY (Днес) into the future
   const getWeekDates = () => {
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - currentDayIndex);
-    
+    const dayNamesBg = ['Неделя', 'Понеделник', 'Вторник', 'Сряда', 'Четвъртък', 'Петък', 'Събота'];
+    const shortDayNamesBg = ['НЕД', 'ПОН', 'ВТО', 'СРЯ', 'ЧЕТ', 'ПЕТ', 'СЪБ'];
+
     return Array.from({ length: 7 }).map((_, i) => {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
+      const d = new Date(now);
+      d.setDate(now.getDate() + i);
+      const dow = d.getDay();
       return {
         dateNum: d.getDate(),
         monthName: d.toLocaleDateString('bg-BG', { month: 'short' }),
-        dayNameBg: ['Понеделник', 'Вторник', 'Сряда', 'Четвъртък', 'Петък', 'Събота', 'Неделя'][i],
-        shortDayBg: ['ПОН', 'ВТО', 'СРЯ', 'ЧЕТ', 'ПЕТ', 'СЪБ', 'НЕД'][i],
-        isToday: i === currentDayIndex,
+        dayNameBg: dayNamesBg[dow],
+        shortDayBg: shortDayNamesBg[dow],
+        isToday: i === 0,
         dayIdx: i,
       };
     });

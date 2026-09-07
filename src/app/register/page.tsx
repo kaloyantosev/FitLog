@@ -63,7 +63,7 @@ export default function RegisterPage() {
     avoidedMuscleAreas: [] as string[],
     foodPreferences: 'BALANCED',
     avoidedIngredients: [] as string[],
-    mealsPerDay: 4,
+    mealsPerDay: 3,
     mealTiming: '08:00 - 20:00 (Стандартен интервал)',
     snackingHabits: 'Леки плодове, скир или сурови ядки следобед',
   });
@@ -410,7 +410,7 @@ export default function RegisterPage() {
             }`}
           >
             <Sparkles className="w-4 h-4" />
-            Нова Регистрация & AI Анализ
+            Нова регистрация и AI анализ
           </button>
           <button
             onClick={() => setAuthMode('LOGIN')}
@@ -496,9 +496,9 @@ export default function RegisterPage() {
               <span>Стъпка {step} от 3</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-              {step === 1 && 'Базови Данни & Профил'}
-              {step === 2 && 'Физиологичен Въпросник & Мускулен Фокус'}
-              {step === 3 && 'Хранителни Предпочитания & Активация'}
+              {step === 1 && 'Базови данни и профил'}
+              {step === 2 && 'Физиологичен въпросник и мускулен фокус'}
+              {step === 3 && 'Хранителни предпочитания и активация'}
             </h1>
             <p className="text-xs sm:text-sm text-text-muted max-w-xl mx-auto">
               {step === 1 && 'Въведете вашите основни данни за контакт и тренировъчен профил.'}
@@ -624,7 +624,7 @@ export default function RegisterPage() {
               <div className="p-5 rounded-2xl bg-surface-2/70 border border-blue-500/30 space-y-4">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <Activity className="w-4 h-4 text-blue-400" />
-                  Физически Параметри & Теглови Цели
+                  Физически параметри и цели за тегло
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
@@ -782,7 +782,7 @@ export default function RegisterPage() {
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-bold text-white flex items-center gap-2">
                     <X className="w-4 h-4 text-red-400" />
-                    <span>Ограничения & Зони за щадене (Контузии)</span>
+                    <span>Ограничения и зони за щадене (Контузии)</span>
                   </h4>
                   <span className="text-[11px] text-red-400 font-semibold">
                     * Можете да изберете повече от една
