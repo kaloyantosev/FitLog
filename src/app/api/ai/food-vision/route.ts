@@ -20,7 +20,7 @@ export async function POST(request: Request) {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-        const prompt = `You are a world-class elite sports nutrition AI assistant for the Mitovski Coaching platform.
+        const prompt = `You are a world-class elite sports nutrition AI assistant for the FitLog platform.
 Analyze the provided food photograph in detail.
 Identify every visible food component, estimate portion sizes in grams accurately, and calculate the exact macronutrients (calories, protein in grams, carbohydrates in grams, fats in grams).
 

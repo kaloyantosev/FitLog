@@ -346,7 +346,7 @@ export default function ProgressPage() {
                       <span>AI Персонален Треньор – Анализ & Насоки</span>
                     </div>
                     <div className="text-xs text-neutral-200 leading-relaxed whitespace-pre-line font-normal">
-                      {item.aiFeedback}
+                      {item.aiFeedback?.replace(/\*+/g, '')}
                     </div>
                   </div>
                 )}

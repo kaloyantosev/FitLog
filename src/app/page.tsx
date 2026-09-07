@@ -103,7 +103,7 @@ export default function DashboardPage() {
             </span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
-            Добре дошли отново, {user?.name || 'Атлет'}
+            Добре дошли отново, {user?.name ? user.name.trim().split(' ')[0] : 'Атлет'}
           </h1>
           <p className="text-sm text-text-muted mt-1">
             Вашата програма е активна. Следете калорийния баланс и стартирайте днешната сесия.

@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
     // 1. Check Bulgarian Open Food Facts API first
     let res = await fetch(`https://bg.openfoodfacts.org/api/v2/product/${cleanCode}.json`, {
-      headers: { 'User-Agent': 'MitovskiCoachingBulgaria - WebApp - Version 1.0' },
+      headers: { 'User-Agent': 'FitLogBulgaria - WebApp - Version 1.0' },
     });
 
     let data = await res.json();
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     // 2. If not found, try Global Open Food Facts endpoint
     if (!data.product) {
       res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${cleanCode}.json`, {
-        headers: { 'User-Agent': 'MitovskiCoachingBulgaria - WebApp - Version 1.0' },
+        headers: { 'User-Agent': 'FitLogBulgaria - WebApp - Version 1.0' },
       });
       data = await res.json();
     }
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     if (!data.product && cleanCode.startsWith('0')) {
       const stripped = cleanCode.replace(/^0+/, '');
       const retryRes = await fetch(`https://bg.openfoodfacts.org/api/v2/product/${stripped}.json`, {
-        headers: { 'User-Agent': 'MitovskiCoachingBulgaria - WebApp - Version 1.0' },
+        headers: { 'User-Agent': 'FitLogBulgaria - WebApp - Version 1.0' },
       });
       const retryData = await retryRes.json();
       if (retryData.product) {

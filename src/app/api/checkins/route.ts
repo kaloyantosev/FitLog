@@ -23,8 +23,8 @@ export async function POST(request: Request) {
       user = await prisma.user.create({
         data: {
           id: 'demo-client-1',
-          name: 'Alex Mitovski',
-          email: 'alex@mitovski.co',
+          name: 'Атлет',
+          email: 'athlete@fitlog.bg',
         },
       });
     }

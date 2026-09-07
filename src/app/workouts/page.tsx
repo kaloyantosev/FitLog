@@ -378,90 +378,8 @@ function WorkoutsContent() {
               </p>
             </div>
 
-            {/* Top Right: Single Rest Timer Button & Finish Button */}
+            {/* Top Right: Finish Button */}
             <div className="flex items-center flex-wrap gap-3">
-              {/* THE ONLY REST TIMER BUTTON */}
-              <div className="relative">
-                <button
-                  onClick={() => {
-                    if (restSecondsRemaining === null) {
-                      startRestTimer(120);
-                    } else {
-                      setIsTimerOpen(!isTimerOpen);
-                    }
-                  }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold transition-all border shadow-sm active:scale-95 ${
-                    timerActive
-                      ? 'bg-blue-500 text-black border-blue-400 shadow-blue-500/20 shadow-md animate-pulse'
-                      : restSecondsRemaining !== null
-                      ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
-                      : 'bg-surface-2 hover:bg-surface-3 text-white border-border'
-                  }`}
-                >
-                  <Timer className="w-4 h-4" />
-                  <span>
-                    {restSecondsRemaining !== null
-                      ? `Таймер за почивка: ${restSecondsRemaining}s`
-                      : 'Таймер за почивка (120s)'}
-                  </span>
-                </button>
-
-                {/* Dropdown controls for Rest Timer */}
-                {restSecondsRemaining !== null && (
-                  <div className="flex items-center gap-1.5 mt-2 bg-surface-2 p-1.5 rounded-xl border border-border">
-                    {timerActive ? (
-                      <button
-                        onClick={pauseTimer}
-                        className="px-2 py-1 bg-surface-3 hover:bg-white/10 rounded-lg text-[10px] text-amber-300 flex items-center gap-1"
-                        title="Пауза"
-                      >
-                        <Pause className="w-3 h-3" />
-                        Пауза
-                      </button>
-                    ) : (
-                      <button
-                        onClick={resumeTimer}
-                        className="px-2 py-1 bg-blue-500 text-black rounded-lg text-[10px] font-bold flex items-center gap-1"
-                        title="Продължи"
-                      >
-                        <Play className="w-3 h-3 fill-current" />
-                        Старт
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => startRestTimer((restSecondsRemaining || 0) + 30)}
-                      className="px-2 py-1 bg-surface-3 hover:bg-white/10 rounded-lg text-[10px] text-white"
-                    >
-                      +30с
-                    </button>
-
-                    <button
-                      onClick={() => startRestTimer(60)}
-                      className="px-2 py-1 bg-surface-3 hover:bg-white/10 rounded-lg text-[10px] text-neutral-300"
-                    >
-                      60с
-                    </button>
-
-                    <button
-                      onClick={() => startRestTimer(120)}
-                      className="px-2 py-1 bg-surface-3 hover:bg-white/10 rounded-lg text-[10px] text-neutral-300"
-                    >
-                      120с
-                    </button>
-
-                    <button
-                      onClick={resetRestTimer}
-                      className="px-2 py-1 bg-red-500/20 text-red-300 hover:bg-red-500/30 rounded-lg text-[10px] flex items-center gap-1 font-semibold"
-                      title="Рестартирай таймера"
-                    >
-                      <RotateCcw className="w-3 h-3" />
-                      Рестарт
-                    </button>
-                  </div>
-                )}
-              </div>
-
               {/* Finish Workout Button */}
               <button
                 onClick={finishWorkout}
@@ -558,43 +476,65 @@ function WorkoutsContent() {
               <div key={ex.exerciseId + exIdx} className="p-5 rounded-3xl bg-surface-1 border border-border space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/40">
                   <div className="flex items-center gap-3">
-                    {/* Equipment thumbnail photo */}
+                    {/* Equipment / Attachment thumbnail photo */}
                     {(() => {
                       const exObj = exercises.find((e) => e.id === ex.exerciseId);
-                      const equipmentImages: Record<string, { url: string; label: string }> = {
-                        BARBELL: { url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=96&auto=format&fit=crop&q=80', label: 'Прав лост' },
-                        DUMBBELL: { url: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=96&auto=format&fit=crop&q=80', label: 'Дъмбел' },
-                        CABLE: { url: 'https://images.unsplash.com/photo-1591311630200-ffa9120a540f?w=96&auto=format&fit=crop&q=80', label: 'Кабелна машина' },
-                        MACHINE: { url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=96&auto=format&fit=crop&q=80', label: 'Фитнес машина' },
-                        BODYWEIGHT: { url: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=96&auto=format&fit=crop&q=80', label: 'Собствено тегло' },
+                      const exerciseAttachmentMap: Record<string, { url: string; label: string; desc: string }> = {
+                        'ex-1': { url: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=160&auto=format&fit=crop&q=80', label: 'Прав олимпийски лост', desc: 'Лост за права лежанка' },
+                        'ex-2': { url: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=160&auto=format&fit=crop&q=80', label: 'Чифт дъмбели', desc: 'Дъмбели за полулег' },
+                        'ex-3': { url: 'https://images.unsplash.com/photo-1591311630200-ffa9120a540f?w=160&auto=format&fit=crop&q=80', label: 'D-ръкохватки за скрипец', desc: 'Единични ръкохватки за скрипец' },
+                        'ex-4': { url: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=160&auto=format&fit=crop&q=80', label: 'Прав олимпийски лост', desc: 'Лост на клек рак' },
+                        'ex-5': { url: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=160&auto=format&fit=crop&q=80', label: 'Прав олимпийски лост', desc: 'Лост за румънска тяга (RDL)' },
+                        'ex-6': { url: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=160&auto=format&fit=crop&q=80', label: 'Чифт дъмбели', desc: 'Дъмбели за български клек' },
+                        'ex-7': { url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=160&auto=format&fit=crop&q=80', label: 'Калф машина', desc: 'Машина за прасци' },
+                        'ex-8': { url: 'https://images.unsplash.com/photo-1591311630200-ffa9120a540f?w=160&auto=format&fit=crop&q=80', label: 'Широк лост за скрипец', desc: 'Лост за горен скрипец' },
+                        'ex-9': { url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=160&auto=format&fit=crop&q=80', label: 'Т-щанга с опора', desc: 'Т-щанга машина с гръдна опора' },
+                        'ex-10': { url: 'https://images.unsplash.com/photo-1591311630200-ffa9120a540f?w=160&auto=format&fit=crop&q=80', label: 'V-ръкохватка за гребане', desc: 'Триъгълна V-ръкохватка' },
+                        'ex-11': { url: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=160&auto=format&fit=crop&q=80', label: 'Чифт дъмбели', desc: 'Дъмбели за странично рамо' },
+                        'ex-12': { url: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=160&auto=format&fit=crop&q=80', label: 'Чифт дъмбели', desc: 'Дъмбели за раменна преса' },
+                        'ex-13': { url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=160&auto=format&fit=crop&q=80', label: 'Въже за скрипец', desc: 'Двойно въже за фейспул' },
+                        'ex-14': { url: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=160&auto=format&fit=crop&q=80', label: 'Чифт дъмбели', desc: 'Дъмбели за бицепс от полулег' },
+                        'ex-15': { url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=160&auto=format&fit=crop&q=80', label: 'Въже за скрипец', desc: 'Въже за трицепс разгъване' },
+                        'ex-16': { url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=160&auto=format&fit=crop&q=80', label: 'Въже за скрипец', desc: 'Въже за трицепс над глава' },
+                        'ex-17': { url: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=160&auto=format&fit=crop&q=80', label: 'Лост за набирания', desc: 'Лост за повдигане на крака' },
                       };
+
+                      const fallbackEquip: Record<string, { url: string; label: string; desc: string }> = {
+                        BARBELL: { url: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=160&auto=format&fit=crop&q=80', label: 'Прав лост', desc: 'Олимпийски лост' },
+                        DUMBBELL: { url: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=160&auto=format&fit=crop&q=80', label: 'Дъмбели', desc: 'Чифт дъмбели' },
+                        CABLE: { url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=160&auto=format&fit=crop&q=80', label: 'Въже/Ръкохватка', desc: 'Приставка за скрипец' },
+                        MACHINE: { url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=160&auto=format&fit=crop&q=80', label: 'Фитнес машина', desc: 'Машина с опора' },
+                        BODYWEIGHT: { url: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=160&auto=format&fit=crop&q=80', label: 'Лост / Собствено тегло', desc: 'Лост или постелка' },
+                      };
+
                       const equip = exObj?.equipment || 'BARBELL';
-                      const img = equipmentImages[equip] || equipmentImages.BARBELL;
+                      const item = exerciseAttachmentMap[ex.exerciseId] || fallbackEquip[equip] || fallbackEquip.BARBELL;
+
                       return (
-                        <div className="relative shrink-0 group/equip" title={img.label}>
+                        <div className="relative shrink-0 group/equip" title={`${item.label} • ${item.desc}`}>
                           <img
-                            src={img.url}
-                            alt={img.label}
-                            className="w-12 h-12 rounded-xl object-cover border border-border/60 shadow-sm"
+                            src={item.url}
+                            alt={item.label}
+                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl object-cover border border-blue-500/30 shadow-md ring-1 ring-white/10 group-hover/equip:ring-blue-500/60 transition-all"
                             onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                           />
-                          <div className="absolute -bottom-5 left-0 text-[9px] font-bold bg-[#090a0f] text-text-muted px-1.5 py-0.5 rounded-md border border-border/60 leading-tight whitespace-nowrap opacity-0 group-hover/equip:opacity-100 transition-opacity pointer-events-none z-20">
-                            {img.label}
+                          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[9px] font-bold bg-[#0a0d14] text-blue-300 px-1.5 py-0.5 rounded-md border border-blue-500/40 shadow-sm leading-tight whitespace-nowrap z-10 max-w-[90px] truncate">
+                            {item.label}
                           </div>
                         </div>
                       );
                     })()}
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="w-5 h-5 rounded-md bg-surface-3 flex items-center justify-center text-[10px] font-bold text-text-muted font-mono shrink-0">
                           {exIdx + 1}
                         </span>
                         <h3 className="text-base font-bold text-white">{ex.exerciseName}</h3>
                       </div>
-                      <div className="text-xs text-text-muted font-mono flex items-center gap-2 mt-0.5">
-                        <span>Цел: {ex.targetSets} серии × {ex.repRange} повторения</span>
+                      <div className="text-xs text-text-muted font-mono flex items-center gap-2 mt-1">
+                        <span>Цел: {ex.targetSets} серии × {ex.repRange} повт.</span>
                         <span>•</span>
-                        <span className="text-blue-400">Почивка: {ex.restSeconds} сек</span>
+                        <span className="text-blue-400 font-semibold">Почивка: {ex.restSeconds} сек</span>
                       </div>
                     </div>
                   </div>
@@ -606,7 +546,7 @@ function WorkoutsContent() {
                       if (exObj) setSelectedExerciseForVideo(exObj);
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-2 hover:bg-surface-3 text-xs text-blue-400 border border-border transition-all self-start sm:self-auto"
-                    title="Гледай видео демонстрация от Muscle & Strength"
+                    title="Гледай видео демонстрация за техника"
                   >
                     <Video className="w-3.5 h-3.5" />
                     Видео демонстрация
@@ -686,24 +626,6 @@ function WorkoutsContent() {
             ))}
           </div>
 
-          {/* Add Additional Exercise to Session */}
-          <div className="p-5 rounded-3xl bg-surface-1 border border-border space-y-3">
-            <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-              Добави допълнително упражнение към текущата сесия
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {exercises.slice(0, 8).map((ex) => (
-                <button
-                  key={ex.id}
-                  onClick={() => addExerciseToActiveSession(ex.id)}
-                  className="text-xs px-3 py-1.5 rounded-xl bg-surface-2 hover:bg-surface-3 border border-border text-text-secondary hover:text-white flex items-center gap-1.5 transition-all"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  {ex.nameBg || ex.name}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Floating Circular Rest Timer */}
           {restSecondsRemaining !== null && (

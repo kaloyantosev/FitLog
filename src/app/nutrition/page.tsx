@@ -459,15 +459,13 @@ export default function NutritionPage() {
   };
 
   const copyGroceryListText = () => {
-    let text = `🛒 FITLOG – СПИСЪК ЗА ПАЗАРУВАНЕ (${consolidatedSelectedIngredients.selectedMealsCount} избрани ястия • ${consolidatedSelectedIngredients.totalWeightKg} кг)\n\n`;
+    let text = `🛒 FITLOG – СПИСЪК ЗА ПАЗАРУВАНЕ ЗА ИЗБРАНИТЕ ЯСТИЯ (${consolidatedSelectedIngredients.selectedMealsCount} избрани рецепти)\n\n`;
     
     Object.entries(consolidatedSelectedIngredients.grouped).forEach(([catKey, group]) => {
       if (group.items.length === 0) return;
       text += `--- ${group.icon} ${group.title} ---\n`;
       group.items.forEach((it) => {
-        const itemKey = `consolidated-${it.name}`;
-        const isChecked = groceryCheckedItems[itemKey];
-        text += `[${isChecked ? '✓' : ' '}] ${it.nameBg || it.name}: ${it.totalGrams >= 1000 ? `${(it.totalGrams / 1000).toFixed(2)} кг` : `${it.totalGrams} ${it.unit || 'г'}`}\n`;
+        text += `• ${it.nameBg || it.name}: ${it.totalGrams >= 1000 ? `${(it.totalGrams / 1000).toFixed(2)} кг` : `${it.totalGrams} ${it.unit || 'г'}`}\n`;
       });
       text += `\n`;
     });
@@ -632,14 +630,6 @@ export default function NutritionPage() {
               className="bg-transparent text-sm text-white font-mono focus:outline-none cursor-pointer"
             />
           </div>
-
-          <button
-            onClick={() => setIsTargetModalOpen(true)}
-            className="p-2 rounded-xl bg-surface-2 hover:bg-surface-3 border border-border text-text-muted hover:text-white transition-all"
-            title="Промени целеви калории и макроси"
-          >
-            <Settings2 className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
@@ -666,7 +656,7 @@ export default function NutritionPage() {
                 <Flame className="w-4 h-4 text-orange-400" />
                 Калории
               </span>
-              <span className="font-mono text-[11px]">{calTarget} ккал</span>
+              <span className="font-mono text-xs font-bold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-lg border border-orange-500/20">Цел: {calTarget} ккал</span>
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-bold font-mono text-white">{totalCal}</span>
@@ -688,7 +678,7 @@ export default function NutritionPage() {
           <div>
             <div className="flex items-center justify-between text-xs text-text-muted mb-2 font-medium">
               <span className="text-blue-400 font-semibold">Протеин</span>
-              <span className="font-mono text-[11px]">Цел: {pTarget}г</span>
+              <span className="font-mono text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-lg border border-blue-500/20">Цел: {pTarget}г</span>
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-bold font-mono text-white">{totalP.toFixed(1)}</span>
@@ -708,7 +698,7 @@ export default function NutritionPage() {
           <div>
             <div className="flex items-center justify-between text-xs text-text-muted mb-2 font-medium">
               <span className="text-amber-400 font-semibold">Въглехидрати</span>
-              <span className="font-mono text-[11px]">Цел: {cTarget}г</span>
+              <span className="font-mono text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20">Цел: {cTarget}г</span>
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-bold font-mono text-white">{totalC.toFixed(1)}</span>
@@ -728,7 +718,7 @@ export default function NutritionPage() {
           <div>
             <div className="flex items-center justify-between text-xs text-text-muted mb-2 font-medium">
               <span className="text-emerald-400 font-semibold">Мазнини</span>
-              <span className="font-mono text-[11px]">Цел: {fTarget}г</span>
+              <span className="font-mono text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">Цел: {fTarget}г</span>
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-bold font-mono text-white">{totalF.toFixed(1)}</span>
@@ -751,7 +741,7 @@ export default function NutritionPage() {
                 <Droplets className="w-4 h-4 text-cyan-400" />
                 Прием на вода
               </span>
-              <span className="font-mono text-[11px]">Цел: {wTarget} мл</span>
+              <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-lg border border-cyan-500/20">Цел: {wTarget} мл</span>
             </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl font-bold font-mono text-cyan-300">{waterMl}</span>
@@ -997,6 +987,98 @@ export default function NutritionPage() {
         </div>
       )}
 
+      {/* Daily Food Log Table */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <Utensils className="w-5 h-5 text-orange-400" />
+            Записани хранения за деня
+          </h2>
+          <button
+            onClick={() => {
+              setSelectedMealType('BREAKFAST');
+              setIsAddModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-all shadow-md active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            Добави храна ръчно
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {mealTypesConfig.map(({ type, label, icon }) => {
+            const mealLogs = logs.filter((l) => l.mealType === type);
+            const mealCals = mealLogs.reduce((acc, i) => acc + i.calories, 0);
+            const mealP = mealLogs.reduce((acc, i) => acc + i.protein, 0);
+            const mealC = mealLogs.reduce((acc, i) => acc + i.carbs, 0);
+            const mealF = mealLogs.reduce((acc, i) => acc + i.fats, 0);
+
+            return (
+              <div key={type} className="p-5 rounded-2xl bg-surface-1 border border-border space-y-4">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{icon}</span>
+                    <span className="font-bold text-sm text-white">{label}</span>
+                    <span className="text-xs font-mono text-text-muted">({mealCals} ккал)</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedMealType(type);
+                      setIsAddModalOpen(true);
+                    }}
+                    className="p-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 text-text-muted hover:text-white transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {mealLogs.length === 0 ? (
+                  <div className="py-6 text-center text-xs text-text-muted">
+                    Няма записана храна за {label.toLowerCase()}.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {mealLogs.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between p-3 rounded-xl bg-surface-2/60 hover:bg-surface-2 border border-border/40 text-xs transition-all group"
+                      >
+                        <div>
+                          <h4 className="font-semibold text-white">{item.foodName}</h4>
+                          <div className="flex items-center gap-2 text-[11px] font-mono text-text-muted mt-0.5">
+                            <span className="text-orange-400 font-bold">{item.calories} ккал</span>
+                            <span>•</span>
+                            <span>P: {item.protein}г</span>
+                            <span>•</span>
+                            <span>C: {item.carbs}г</span>
+                            <span>•</span>
+                            <span>F: {item.fats}г</span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => item.id && handleDeleteFood(item.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+
+                    <div className="pt-2 border-t border-border/30 flex items-center justify-between text-[11px] font-mono text-text-muted font-semibold">
+                      <span>Общо:</span>
+                      <span>P: {mealP.toFixed(1)}г | C: {mealC.toFixed(1)}г | F: {mealF.toFixed(1)}г</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      
       {/* EXPANDED WEEKLY GROCERY SHOPPING LIST */}
       {mealPlan && (
         <div className="p-6 rounded-3xl bg-surface-1 border border-border space-y-6 shadow-lg">
@@ -1011,7 +1093,7 @@ export default function NutritionPage() {
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   Седмичен списък за пазаруване
                   <span className="text-[11px] font-mono font-medium px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                    {consolidatedSelectedIngredients.selectedMealsCount} избрани ястия ({consolidatedSelectedIngredients.totalWeightKg} кг съставки)
+                    {consolidatedSelectedIngredients.selectedMealsCount} избрани ястия ({consolidatedSelectedIngredients.totalUniqueItems} вида продукт)
                   </span>
                 </h2>
                 <p className="text-xs text-text-muted">
@@ -1021,14 +1103,6 @@ export default function NutritionPage() {
             </div>
 
             <div className="flex items-center flex-wrap gap-2">
-              {/* Select All / Deselect All Meals */}
-              <button
-                type="button"
-                onClick={selectAllGroceryMeals}
-                className="px-3 py-1.5 rounded-xl bg-surface-2 hover:bg-surface-3 text-text-muted hover:text-white text-xs border border-border font-semibold transition-all active:scale-95"
-              >
-                ✓ Избери всички ястия
-              </button>
               <button
                 type="button"
                 onClick={deselectAllGroceryMeals}
@@ -1051,12 +1125,47 @@ export default function NutritionPage() {
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5 text-black" />
-                    <span>Копирай списъка</span>
+                    <span>Копирай избраните</span>
                   </>
                 )}
               </button>
             </div>
           </div>
+
+                    {/* Сумарен списък на необходимите продукти с точни грамажи за избраните ястия */}
+          {consolidatedSelectedIngredients.selectedMealsCount > 0 ? (
+            <div className="p-5 rounded-2xl bg-surface-2/80 border border-emerald-500/40 space-y-3.5 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/50 pb-3">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Сумарно необходими продукти за избраните ястия:
+                </h3>
+                <span className="text-xs font-mono text-emerald-300 font-semibold">
+                  {consolidatedSelectedIngredients.totalUniqueItems} вида продукт
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                {Object.values(consolidatedSelectedIngredients.grouped).flatMap((g) => g.items).map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-surface-3/70 border border-border/60 text-xs"
+                  >
+                    <span className="font-semibold text-white truncate pr-2">{item.nameBg || item.name}</span>
+                    <span className="font-mono font-bold text-emerald-400 shrink-0">
+                      {item.totalGrams >= 1000
+                        ? `${(item.totalGrams / 1000).toFixed(2)} кг`
+                        : `${item.totalGrams} ${item.unit || 'г'}`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-surface-2/40 border border-border/40 text-center text-xs text-text-muted">
+              Маркирайте ястия с тикче отдолу, за да видите тук обобщените продукти и грамажи за пазаруване.
+            </div>
+          )}
 
           {/* ALL WEEKLY MEALS WITH DIRECT RECIPE & INGREDIENT CHECKLIST */}
           <div className="space-y-6">
@@ -1187,97 +1296,6 @@ export default function NutritionPage() {
           </div>
         </div>
       )}
-
-      {/* Daily Food Log Table */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Utensils className="w-5 h-5 text-orange-400" />
-            Вписани хранения за деня
-          </h2>
-          <button
-            onClick={() => {
-              setSelectedMealType('BREAKFAST');
-              setIsAddModalOpen(true);
-            }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-all shadow-md active:scale-95"
-          >
-            <Plus className="w-4 h-4" />
-            Добави храна ръчно
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {mealTypesConfig.map(({ type, label, icon }) => {
-            const mealLogs = logs.filter((l) => l.mealType === type);
-            const mealCals = mealLogs.reduce((acc, i) => acc + i.calories, 0);
-            const mealP = mealLogs.reduce((acc, i) => acc + i.protein, 0);
-            const mealC = mealLogs.reduce((acc, i) => acc + i.carbs, 0);
-            const mealF = mealLogs.reduce((acc, i) => acc + i.fats, 0);
-
-            return (
-              <div key={type} className="p-5 rounded-2xl bg-surface-1 border border-border space-y-4">
-                <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{icon}</span>
-                    <span className="font-bold text-sm text-white">{label}</span>
-                    <span className="text-xs font-mono text-text-muted">({mealCals} ккал)</span>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setSelectedMealType(type);
-                      setIsAddModalOpen(true);
-                    }}
-                    className="p-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 text-text-muted hover:text-white transition-all"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {mealLogs.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-text-muted">
-                    Няма вписана храна за {label.toLowerCase()}.
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {mealLogs.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between p-3 rounded-xl bg-surface-2/60 hover:bg-surface-2 border border-border/40 text-xs transition-all group"
-                      >
-                        <div>
-                          <h4 className="font-semibold text-white">{item.foodName}</h4>
-                          <div className="flex items-center gap-2 text-[11px] font-mono text-text-muted mt-0.5">
-                            <span className="text-orange-400 font-bold">{item.calories} ккал</span>
-                            <span>•</span>
-                            <span>P: {item.protein}г</span>
-                            <span>•</span>
-                            <span>C: {item.carbs}г</span>
-                            <span>•</span>
-                            <span>F: {item.fats}г</span>
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => item.id && handleDeleteFood(item.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-all"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ))}
-
-                    <div className="pt-2 border-t border-border/30 flex items-center justify-between text-[11px] font-mono text-text-muted font-semibold">
-                      <span>Общо:</span>
-                      <span>P: {mealP.toFixed(1)}г | C: {mealC.toFixed(1)}г | F: {mealF.toFixed(1)}г</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Barcode Scanner Modal */}
       <BarcodeScannerModal

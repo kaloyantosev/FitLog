@@ -66,8 +66,8 @@ export default function ExerciseVideoModal({ exercise, isOpen, onClose }: Exerci
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 bg-surface-2">
               <Dumbbell className="w-12 h-12 text-text-muted mb-2 animate-pulse" />
-              <span className="text-sm font-semibold text-white">Видео демонстрация от Muscle & Strength</span>
-              <span className="text-xs text-text-muted mt-1">HD видео за правилна техника: {exercise.nameBg || exercise.name}</span>
+              <span className="text-sm font-semibold text-white">Видео демонстрация за правилна техника</span>
+              <span className="text-xs text-text-muted mt-1">HD видео за изпълнение: {exercise.nameBg || exercise.name}</span>
             </div>
           )}
         </div>
@@ -79,7 +79,7 @@ export default function ExerciseVideoModal({ exercise, isOpen, onClose }: Exerci
             <div className="p-3.5 rounded-2xl bg-surface-2/70 border border-border/80 space-y-1">
               <div className="font-semibold text-white flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                 <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
-                1. Начална позиция & стойка
+                1. Начална позиция и стойка
               </div>
               <p className="text-text-secondary leading-relaxed pl-5">
                 {exercise.setupInstructions}
@@ -92,7 +92,7 @@ export default function ExerciseVideoModal({ exercise, isOpen, onClose }: Exerci
             <div className="p-3.5 rounded-2xl bg-surface-2/70 border border-border/80 space-y-1">
               <div className="font-semibold text-white flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
                 <Play className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
-                2. Техника на изпълнение & темпо
+                2. Техника на изпълнение и темпо
               </div>
               <p className="text-text-secondary leading-relaxed pl-5">
                 {exercise.executionInstructions}
@@ -114,20 +114,11 @@ export default function ExerciseVideoModal({ exercise, isOpen, onClose }: Exerci
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-border/60">
-          <a
-            href={`https://www.muscleandstrength.com/exercises/${encodeURIComponent(exercise.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}.html`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[11px] text-blue-400 hover:underline flex items-center gap-1 font-mono"
-          >
-            Muscle & Strength Наръчник <ExternalLink className="w-3 h-3" />
-          </a>
-
+        <div className="flex items-center justify-end pt-3 border-t border-border/60">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-white text-black font-semibold text-xs hover:bg-neutral-200 shadow-md transition-all active:scale-95"
+            className="px-5 py-2.5 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 shadow-md transition-all active:scale-95"
           >
             Затвори ръководството
           </button>

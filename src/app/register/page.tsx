@@ -325,7 +325,7 @@ export default function RegisterPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name || 'Атлет',
+          name: formData.name ? formData.name.trim().split(' ')[0] : 'Атлет',
           email: formData.email,
           gender: formData.gender,
           age: parseInt(String(formData.age)) || 25,
@@ -453,7 +453,7 @@ export default function RegisterPage() {
                 <input
                   type="email"
                   required
-                  placeholder="alex@domain.bg"
+                  placeholder="ivan@domain.bg"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-border text-white text-xs focus:outline-none focus:border-blue-500"
@@ -536,15 +536,15 @@ export default function RegisterPage() {
             <div className="p-6 sm:p-8 rounded-3xl bg-surface-1 border border-border space-y-6 shadow-xl">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-text-muted mb-1">Вашето Име *</label>
+                  <label className="block text-xs font-semibold text-text-muted mb-1">Вашето първо име *</label>
                   <div className="relative">
                     <UserIcon className="w-4 h-4 text-text-muted absolute left-3.5 top-3.5" />
                     <input
                       type="text"
                       required
-                      placeholder="Алекс Митовски"
+                      placeholder="напр. Калоян"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value.trim().split(' ')[0] })}
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-border text-white text-xs focus:outline-none focus:border-blue-500"
                     />
                   </div>
@@ -557,7 +557,7 @@ export default function RegisterPage() {
                     <input
                       type="email"
                       required
-                      placeholder="alex@domain.bg"
+                      placeholder="ivan@domain.bg"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-2 border border-border text-white text-xs focus:outline-none focus:border-blue-500"

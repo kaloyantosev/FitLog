@@ -51,11 +51,6 @@ export default function MealIngredientsModal({
             <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">
               {meal.nameBg || meal.name}
             </h2>
-            {meal.name && (
-              <p className="text-xs text-text-secondary font-medium">
-                {meal.name}
-              </p>
-            )}
           </div>
         </div>
 
@@ -68,15 +63,15 @@ export default function MealIngredientsModal({
               <div className="text-base sm:text-lg font-bold text-white mt-0.5">{meal.calories} ккал</div>
             </div>
             <div>
-              <div className="text-[10px] text-blue-400 uppercase font-semibold">Протеин</div>
+              <div className="text-[10px] text-blue-400 uppercase font-semibold">Протеин (П)</div>
               <div className="text-base sm:text-lg font-bold text-white mt-0.5">{meal.protein} г</div>
             </div>
             <div>
-              <div className="text-[10px] text-amber-400 uppercase font-semibold">Въглехидрати</div>
+              <div className="text-[10px] text-amber-400 uppercase font-semibold">Въглехидрати (В)</div>
               <div className="text-base sm:text-lg font-bold text-white mt-0.5">{meal.carbs} г</div>
             </div>
             <div>
-              <div className="text-[10px] text-emerald-400 uppercase font-semibold">Мазнини</div>
+              <div className="text-[10px] text-emerald-400 uppercase font-semibold">Мазнини (М)</div>
               <div className="text-base sm:text-lg font-bold text-white mt-0.5">{meal.fats} г</div>
             </div>
           </div>
@@ -93,11 +88,23 @@ export default function MealIngredientsModal({
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
                 <Utensils className="w-4 h-4 text-emerald-400" />
-                Точни съставки & грамажи на рецептата
+                Точни съставки и грамажи на рецептата
               </h3>
               <span className="text-[11px] font-mono text-text-muted">
                 {meal.ingredients?.length || 0} съставки
               </span>
+            </div>
+
+            {/* Clear explanation of P / C / F */}
+            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-text-muted font-mono bg-surface-2/60 px-3.5 py-2 rounded-xl border border-border/40">
+              <span className="font-semibold text-text-secondary">Обяснение на колоната П / В / М:</span>
+              <div className="flex items-center gap-3">
+                <span><strong className="text-blue-400">П (P)</strong> = Протеин</span>
+                <span>•</span>
+                <span><strong className="text-amber-400">В (C)</strong> = Въглехидрати</span>
+                <span>•</span>
+                <span><strong className="text-emerald-400">М (F)</strong> = Мазнини</span>
+              </div>
             </div>
 
             <div className="rounded-2xl border border-border overflow-hidden">
@@ -105,7 +112,7 @@ export default function MealIngredientsModal({
                 <div className="col-span-5">Съставка</div>
                 <div className="col-span-3 text-center">Грамаж</div>
                 <div className="col-span-2 text-center">Енергия</div>
-                <div className="col-span-2 text-right">P / C / F</div>
+                <div className="col-span-2 text-right" title="Протеин (г) / Въглехидрати (г) / Мазнини (г)">П / В / М</div>
               </div>
 
               <div className="divide-y divide-border/60 bg-surface-1 text-xs">
